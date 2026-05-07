@@ -1,0 +1,28 @@
+---
+description: Quand Thomas dit "nouveau projet", poser 2 questions et configurer project.ts + layout prototype
+alwaysApply: true
+---
+
+# Nouveau projet (workflow)
+
+Quand l'utilisateur dit **"nouveau projet"** dans la conversation :
+
+1. Poser exactement ces 2 questions :
+   - **Quel est le nom du projet ?**
+   - **Quel est le type d'interface ?**
+     - A) Mobile uniquement
+     - B) Desktop uniquement
+     - C) Responsive (mobile + desktop)
+
+2. Selon les réponses, mettre à jour `src/config/project.ts` :
+   - `PROJECT_DISPLAY_NAME` = le nom fourni
+   - `PROJECT_TYPE` = `"mobile" | "desktop" | "responsive"` (A→mobile, B→desktop, C→responsive)
+
+3. Adapter le layout autour de `/prototype` :
+   - **mobile** → vue mockup mobile par défaut, boutons de switch masqués
+   - **desktop** → vue plein écran par défaut, boutons de switch masqués
+   - **responsive** → boutons visibles, vue mockup mobile par défaut
+
+4. Confirmer :
+   - `✅ Projet [nom] configuré en mode [type]. Tu peux démarrer.`
+

@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+:root {
+  /* Palette slate (wireframe) */
+  --color-primary: 2 6 23; /* slate-950 */
+  --color-secondary: 51 65 85; /* slate-700 */
+  --color-background: 248 250 252; /* slate-50 */
+  --color-muted: 241 245 249; /* slate-100 */
+  --color-surface: 255 255 255;
+  --color-border: 226 232 240; /* slate-200 */
+  --color-text: 30 41 59; /* slate-800 */
+  --color-card-border: 30 41 59; /* slate-800 */
+  --color-danger: 220 38 38; /* red-600 */
+  --color-success: 22 163 74; /* green-600 */
+  --color-warning: 245 158 11; /* amber-500 */
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: rgb(var(--color-text));
+  background: rgb(var(--color-background));
+}
+
