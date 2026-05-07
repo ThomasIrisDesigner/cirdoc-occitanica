@@ -1,0 +1,24 @@
+---
+description: Contexte projet CIRDOC-Occitanica (site grand public responsive) + phase wireframe
+alwaysApply: true
+---
+
+# Contexte projet
+
+- **Client / projet**: CIRDOC-Occitanica
+- **Type d’interface**: site grand public
+- **Responsive**: oui (mobile + desktop), **mobile-first**
+- **Phase en cours**: wireframe (palette slate par défaut)
+
+# Stack & conventions
+
+- React + TypeScript + Vite
+- Tailwind CSS (grille 8px)
+- shadcn/ui en priorité
+- pnpm uniquement
+
+# Design system (wireframe)
+
+- Ne jamais écrire de couleurs en dur (hex/rgb). Utiliser les variables CSS de `src/styles/theme.css`.
+- Typographie via `src/styles/typography.ts` (jamais inline).
+

@@ -14,6 +14,22 @@
   --color-danger: 220 38 38; /* red-600 */
   --color-success: 22 163 74; /* green-600 */
   --color-warning: 245 158 11; /* amber-500 */
+
+  /* Occitanica — palette wireframes (v1) */
+  --occ-dark: 24 24 27; /* #18181b */
+  --occ-gray: 113 113 122; /* #71717a */
+  --occ-light: 244 244 245; /* #f4f4f5 */
+  --occ-border: 228 228 231; /* #e4e4e7 */
+  --occ-med: 212 212 216; /* #d4d4d8 */
+  --occ-white: 255 255 255; /* #ffffff */
+  --occ-brand: 13 110 110; /* #0d6e6e */
+  --occ-brand-soft: 224 242 241; /* #e0f2f1 */
+
+  --occ-espace-langue: 26 82 118; /* #1a5276 */
+  --occ-espace-musique: 108 52 131; /* #6c3483 */
+  --occ-espace-fetes: 120 66 18; /* #784212 */
+  --occ-espace-portraits: 30 132 73; /* #1e8449 */
+  --occ-espace-scene: 146 43 33; /* #922b21 */
 }
 
 html,
