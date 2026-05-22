@@ -172,8 +172,62 @@ function MobileHeader({
 }
 
 function HorizontalScroller({ children }: { children: React.ReactNode }) {
+  const ref = React.useRef<HTMLDivElement | null>(null)
+  const isDownRef = React.useRef(false)
+  const startXRef = React.useRef(0)
+  const startScrollLeftRef = React.useRef(0)
+  const draggedRef = React.useRef(false)
+  const [isDragging, setIsDragging] = React.useState(false)
+
+  React.useEffect(() => {
+    // Ensure initial alignment on first item (no left "peek")
+    const el = ref.current
+    if (!el) return
+    el.scrollLeft = 0
+  }, [])
+
   return (
-    <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-scroll px-5 pb-3 pr-14 [scrollbar-width:none]">
+    <div
+      ref={ref}
+      className={[
+        // Left aligned with titles (px-5). Right can "peek" (negative margin + extra padding).
+        'flex gap-4 overflow-x-auto pb-3 pl-5 pr-14 -mr-5 touch-pan-x overscroll-x-contain [scrollbar-width:none] md:cursor-grab',
+        isDragging ? 'snap-none md:cursor-grabbing' : 'snap-x snap-proximity',
+      ].join(' ')}
+      style={{ scrollPaddingLeft: 20, scrollPaddingRight: 56 }}
+      onPointerDown={(e) => {
+        const el = ref.current
+        if (!el) return
+        isDownRef.current = true
+        draggedRef.current = false
+        setIsDragging(true)
+        startXRef.current = e.clientX
+        startScrollLeftRef.current = el.scrollLeft
+        try {
+          el.setPointerCapture(e.pointerId)
+        } catch {
+          // ignore
+        }
+      }}
+      onPointerMove={(e) => {
+        const el = ref.current
+        if (!el || !isDownRef.current) return
+        const dx = e.clientX - startXRef.current
+        if (Math.abs(dx) > 3) draggedRef.current = true
+        el.scrollLeft = startScrollLeftRef.current - dx
+      }}
+      onPointerUp={() => {
+        isDownRef.current = false
+        setIsDragging(false)
+      }}
+      onPointerCancel={() => {
+        isDownRef.current = false
+        setIsDragging(false)
+      }}
+      onDragStart={(e) => {
+        e.preventDefault()
+      }}
+    >
       {children}
     </div>
   )
@@ -188,6 +242,305 @@ function CardSkeletonLines() {
   )
 }
 
+function HeroCarousel({
+  title,
+  onPrimaryAction,
+  primaryLabel,
+}: {
+  title: string
+  primaryLabel: string
+  onPrimaryAction: () => void
+}) {
+  const baseSlides = React.useMemo(() => [0, 1, 2] as const, [])
+  const slides = React.useMemo(
+    () => [2, 0, 1, 2, 0] as const,
+    []
+  )
+  const scrollerRef = React.useRef<HTMLDivElement | null>(null)
+  const slideRefs = React.useRef<Array<HTMLDivElement | null>>([])
+  const rafRef = React.useRef<number | null>(null)
+  const [active, setActive] = React.useState(0) // 0..2 (baseSlides index)
+  const [styles, setStyles] = React.useState<
+    Array<{ scale: number; opacity: number }>
+  >(() => slides.map(() => ({ scale: 1, opacity: 1 })))
+
+  const isDownRef = React.useRef(false)
+  const startXRef = React.useRef(0)
+  const startScrollLeftRef = React.useRef(0)
+  const draggingRef = React.useRef(false)
+  const ignoreScrollRef = React.useRef(false)
+  const [isDragging, setIsDragging] = React.useState(false)
+  const [snapEnabled, setSnapEnabled] = React.useState(true)
+
+  // Centered visual slide index in `slides` array
+  // We start on index 1 => base slide 0 (first dot), with peek left/right.
+  const centerIndex = React.useRef(1)
+
+  const compute = React.useCallback(() => {
+    const scroller = scrollerRef.current
+    if (!scroller) return
+
+    const rect = scroller.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+
+    let bestIdx = 0
+    let bestDist = Number.POSITIVE_INFINITY
+
+    const next = slides.map((_, idx) => {
+      const el = slideRefs.current[idx]
+      if (!el) return { scale: 0.94, opacity: 0.85 }
+
+      const r = el.getBoundingClientRect()
+      const slideCenter = r.left + r.width / 2
+      const dist = Math.abs(centerX - slideCenter)
+      if (dist < bestDist) {
+        bestDist = dist
+        bestIdx = idx
+      }
+
+      const t = Math.min(1, dist / (rect.width * 0.85))
+      // Slight ease-out for softer feel
+      const eased = Math.pow(t, 1.35)
+      const scale = 1 - 0.06 * eased
+      const opacity = 1 - 0.22 * eased
+      return { scale, opacity }
+    })
+
+    centerIndex.current = bestIdx
+    setActive(slides[bestIdx] ?? 0)
+    setStyles(next)
+  }, [slides])
+
+  const centerSlideAt = React.useCallback((visualIdx: number, smooth = false) => {
+    const scroller = scrollerRef.current
+    const slide = slideRefs.current[visualIdx]
+    if (!scroller || !slide) return
+
+    const left =
+      slide.offsetLeft - (scroller.clientWidth - slide.clientWidth) / 2
+    scroller.scrollTo({ left, behavior: smooth ? 'smooth' : 'auto' })
+  }, [])
+
+  React.useEffect(() => {
+    // initial center (index 2 => base slide 1) so we have peek left/right immediately
+    const scroller = scrollerRef.current
+    if (scroller) {
+      // wait layout
+      requestAnimationFrame(() => {
+        centerSlideAt(1, false)
+        compute()
+      })
+    } else {
+      compute()
+    }
+    function onResize() {
+      compute()
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [centerSlideAt, compute])
+
+  React.useEffect(() => {
+    const scroller = scrollerRef.current
+    if (!scroller) return
+
+    function onScroll() {
+      if (ignoreScrollRef.current) return
+      if (rafRef.current) return
+      rafRef.current = window.requestAnimationFrame(() => {
+        rafRef.current = null
+        compute()
+      })
+    }
+
+    scroller.addEventListener('scroll', onScroll, { passive: true })
+    return () => scroller.removeEventListener('scroll', onScroll)
+  }, [compute])
+
+  const scrollToIndex = React.useCallback((baseIdx: number) => {
+    const scroller = scrollerRef.current
+    if (!scroller) return
+    // choose the closest occurrence of baseIdx around current center
+    const current = centerIndex.current
+    const candidates = slides
+      .map((v, i) => ({ v, i }))
+      .filter((x) => x.v === baseIdx)
+      .map((x) => x.i)
+    const best = candidates.sort((a, b) => Math.abs(a - current) - Math.abs(b - current))[0]
+    const slide = slideRefs.current[best]
+    if (!scroller || !slide) return
+
+    const left =
+      slide.offsetLeft - (scroller.clientWidth - slide.clientWidth) / 2
+    scroller.scrollTo({ left, behavior: 'smooth' })
+  }, [slides])
+
+  const normalizeLoop = React.useCallback(() => {
+    const scroller = scrollerRef.current
+    if (!scroller) return
+    const idx = centerIndex.current
+    // if we are on the clones edges, jump to the corresponding "real" occurrence
+    // slides = [2,0,1,2,0]
+    // idx 0 (base2 clone-left) -> jump to idx 3 (base2)
+    // idx 4 (base0 clone-right) -> jump to idx 1 (base0)
+    if (idx === 0) {
+      ignoreScrollRef.current = true
+      centerSlideAt(3, false)
+      window.setTimeout(() => {
+        ignoreScrollRef.current = false
+        compute()
+      }, 0)
+    } else if (idx === slides.length - 1) {
+      ignoreScrollRef.current = true
+      centerSlideAt(1, false)
+      window.setTimeout(() => {
+        ignoreScrollRef.current = false
+        compute()
+      }, 0)
+    }
+  }, [centerSlideAt, compute, slides.length])
+
+  const snapToNearest = React.useCallback(() => {
+    const idx = centerIndex.current
+    centerSlideAt(idx, true)
+  }, [centerSlideAt])
+
+  return (
+    <div className="px-5 pt-6">
+      <h1 className="text-[32px] font-extrabold tracking-tight text-[rgb(var(--occ-dark))]">
+        {title}
+      </h1>
+
+      <div
+        ref={scrollerRef}
+        className={[
+          '-mx-5 mt-4 flex gap-4 overflow-x-auto px-5 pb-2 touch-pan-x overscroll-x-contain [scrollbar-width:none] md:cursor-grab',
+          snapEnabled ? 'snap-x snap-mandatory' : 'snap-none',
+          isDragging ? 'md:cursor-grabbing' : '',
+        ].join(' ')}
+        style={{ scrollPaddingLeft: 20, scrollPaddingRight: 20 }}
+        onPointerDown={(e) => {
+          const el = scrollerRef.current
+          if (!el) return
+          isDownRef.current = true
+          draggingRef.current = false
+          setSnapEnabled(false)
+          setIsDragging(true)
+          startXRef.current = e.clientX
+          startScrollLeftRef.current = el.scrollLeft
+          try {
+            el.setPointerCapture(e.pointerId)
+          } catch {
+            // ignore
+          }
+        }}
+        onPointerMove={(e) => {
+          const el = scrollerRef.current
+          if (!el || !isDownRef.current) return
+          const dx = e.clientX - startXRef.current
+          if (Math.abs(dx) > 3) draggingRef.current = true
+          el.scrollLeft = startScrollLeftRef.current - dx
+        }}
+        onPointerUp={() => {
+          isDownRef.current = false
+          setIsDragging(false)
+          // Smoothly center the nearest slide, then re-enable snap.
+          snapToNearest()
+          window.setTimeout(() => {
+            setSnapEnabled(true)
+            normalizeLoop()
+          }, 260)
+        }}
+        onPointerCancel={() => {
+          isDownRef.current = false
+          setIsDragging(false)
+          snapToNearest()
+          window.setTimeout(() => {
+            setSnapEnabled(true)
+            normalizeLoop()
+          }, 260)
+        }}
+        onMouseLeave={() => {
+          if (!isDownRef.current) return
+          isDownRef.current = false
+          setIsDragging(false)
+          snapToNearest()
+          window.setTimeout(() => {
+            setSnapEnabled(true)
+            normalizeLoop()
+          }, 260)
+        }}
+        onDragStart={(e) => e.preventDefault()}
+      >
+        {slides.map((i, idx) => (
+          <div
+            // eslint-disable-next-line react/no-array-index-key
+            key={`${i}-${idx}`}
+            ref={(el) => {
+              slideRefs.current[idx] = el
+            }}
+            className="flex-none snap-center"
+            style={{ width: 300 }}
+          >
+            <div
+              className="relative origin-center overflow-hidden rounded-[22px] bg-[rgb(var(--occ-light))] shadow-[0_18px_48px_rgba(0,0,0,0.18)]"
+              style={{
+                transform: `scale(${styles[idx]?.scale ?? 1})`,
+                opacity: styles[idx]?.opacity ?? 1,
+                transition: isDragging
+                  ? 'none'
+                  : 'transform 220ms ease, opacity 220ms ease',
+                willChange: 'transform, opacity',
+              }}
+            >
+              <PlaceholderImage className="h-[344px] w-full" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/15 to-black/75" />
+
+              <div className="absolute inset-x-0 bottom-0 px-5 pb-6 text-center text-white">
+                <div className="mx-auto max-w-[260px] space-y-3">
+                  <div className="space-y-2">
+                    <div className="h-3 w-full rounded bg-white/90" />
+                    <div className="h-3 w-10/12 rounded bg-white/80" />
+                  </div>
+                  <div className="mx-auto h-2 w-7/12 rounded bg-white/50" />
+
+                  <button
+                    type="button"
+                    onClick={onPrimaryAction}
+                    className="mx-auto inline-flex h-12 items-center justify-center rounded-full bg-white px-8 text-[14px] font-semibold text-[rgb(var(--occ-dark))]"
+                  >
+                    {primaryLabel}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 flex justify-center gap-2">
+        {baseSlides.map((i) => (
+          <button
+            key={i}
+            type="button"
+            aria-label={`Aller à la slide ${i + 1}`}
+            onClick={() => scrollToIndex(i)}
+            className="rounded-full"
+            style={{
+              width: i === active ? 22 : 8,
+              height: 8,
+              background:
+                i === active
+                  ? 'rgb(var(--occ-dark))'
+                  : 'rgb(var(--occ-med))',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function HomeScreen({ go }: { go: (screen: Screen) => void }) {
   const musique = espaces.find((e) => e.key === 'musique')!
 
@@ -195,51 +548,11 @@ function HomeScreen({ go }: { go: (screen: Screen) => void }) {
     <div className="min-h-[calc(100dvh-32px)] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))]">
       <MobileHeader onMenu={() => go('menu')} />
 
-      {/* Hero — inspiré Radio France */}
-      <div className="px-5 pt-6">
-        <h1 className="text-[32px] font-extrabold tracking-tight text-[rgb(var(--occ-dark))]">
-          À la Une
-        </h1>
-
-        <div className="mt-4">
-          <div className="relative overflow-hidden rounded-[22px] bg-[rgb(var(--occ-light))] shadow-[0_18px_48px_rgba(0,0,0,0.18)]">
-            <PlaceholderImage className="h-[420px] w-full" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/15 to-black/75" />
-
-            <div className="absolute inset-x-0 bottom-0 px-5 pb-6 text-center text-white">
-              <div className="mx-auto max-w-[260px] space-y-3">
-                <div className="space-y-2">
-                  <div className="h-3 w-full rounded bg-white/90" />
-                  <div className="h-3 w-10/12 rounded bg-white/80" />
-                </div>
-                <div className="h-2 w-7/12 mx-auto rounded bg-white/50" />
-
-                <button
-                  type="button"
-                  onClick={() => go('article-musique')}
-                  className="mx-auto inline-flex h-12 items-center justify-center rounded-full bg-white px-8 text-[14px] font-semibold text-[rgb(var(--occ-dark))]"
-                >
-                  Découvrir
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 flex justify-center gap-2">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="rounded-full"
-              style={{
-                width: i === 1 ? 22 : 8,
-                height: 8,
-                background: i === 1 ? 'rgb(var(--occ-dark))' : 'rgb(var(--occ-med))',
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      <HeroCarousel
+        title="À la Une"
+        primaryLabel="Découvrir"
+        onPrimaryAction={() => go('article-musique')}
+      />
 
       <Divider />
 
