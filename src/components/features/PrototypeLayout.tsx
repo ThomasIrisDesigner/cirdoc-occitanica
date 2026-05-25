@@ -55,6 +55,8 @@ export function PrototypeLayout({
   const onPrototype = pathname === '/prototype'
   const mobileActive = onPrototype && effectiveMode === 'mobile'
   const sitemapActive = pathname === '/sitemap'
+  // Consultation sur téléphone : prototype plein écran, pas le mockup desktop
+  const isRealMobileView = !isDesktop && effectiveMode === 'desktop'
 
   function selectView(next: ViewMode) {
     setMode(next)
@@ -93,7 +95,12 @@ export function PrototypeLayout({
 
   return (
     <div className="min-h-dvh bg-primary text-surface">
-      <div className="fixed inset-x-0 top-0 z-50 h-8 border-b border-surface/10 bg-primary text-surface">
+      <div
+        className={cn(
+          'z-50 h-8 border-b border-surface/10 bg-primary text-surface',
+          isRealMobileView ? 'relative' : 'fixed inset-x-0 top-0'
+        )}
+      >
         <div className="mx-auto flex h-8 w-full max-w-7xl items-center justify-between px-4">
           <div className="flex min-w-0 items-center gap-2">
             <Link to="/prototype" className="truncate text-xs text-surface/70">
@@ -102,31 +109,33 @@ export function PrototypeLayout({
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="hidden md:flex items-center gap-2">
-              <Link
-                to="/sitemap"
-                aria-label="Arborescence du site"
-                className={cn(
-                  'inline-flex h-8 w-8 items-center justify-center rounded-md bg-surface/10 text-surface/80 transition-colors hover:bg-surface/15 hover:text-surface',
-                  sitemapActive && 'bg-secondary text-surface'
-                )}
-              >
-                <Network className="h-4 w-4" />
-              </Link>
-              {allowSwitch && (
-                <button
-                  type="button"
-                  aria-label="Vue mobile"
-                  onClick={() => selectView('mobile')}
+            {isDesktop && (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/sitemap"
+                  aria-label="Arborescence du site"
                   className={cn(
                     'inline-flex h-8 w-8 items-center justify-center rounded-md bg-surface/10 text-surface/80 transition-colors hover:bg-surface/15 hover:text-surface',
-                    mobileActive && 'bg-secondary text-surface'
+                    sitemapActive && 'bg-secondary text-surface'
                   )}
                 >
-                  <Smartphone className="h-4 w-4" />
-                </button>
-              )}
-            </div>
+                  <Network className="h-4 w-4" />
+                </Link>
+                {allowSwitch && (
+                  <button
+                    type="button"
+                    aria-label="Vue mobile"
+                    onClick={() => selectView('mobile')}
+                    className={cn(
+                      'inline-flex h-8 w-8 items-center justify-center rounded-md bg-surface/10 text-surface/80 transition-colors hover:bg-surface/15 hover:text-surface',
+                      mobileActive && 'bg-secondary text-surface'
+                    )}
+                  >
+                    <Smartphone className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            )}
 
             <a
               href="/login"
@@ -144,7 +153,7 @@ export function PrototypeLayout({
         </div>
       </div>
 
-      <div className="pt-8">
+      <div className={isRealMobileView ? undefined : 'pt-8'}>
         {effectiveMode === 'mobile' ? (
           <div className="mx-auto flex h-[calc(100dvh-32px)] w-full items-center justify-center px-4 py-8">
             <div
@@ -210,7 +219,12 @@ export function PrototypeLayout({
             </div>
           </div>
         ) : (
-          <div className="min-h-[calc(100dvh-32px)] bg-background text-text">
+          <div
+            className={cn(
+              'bg-background text-text',
+              isRealMobileView ? 'min-h-dvh' : 'min-h-[calc(100dvh-32px)]'
+            )}
+          >
             {children}
           </div>
         )}

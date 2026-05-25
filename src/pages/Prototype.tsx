@@ -301,7 +301,7 @@ function MobileHeader({
 }) {
   const showBack = Boolean(onBack)
   return (
-    <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))] px-5">
+    <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))] px-5">
       <div className="flex min-w-0 items-center gap-2">
         {showBack ? (
           <button
