@@ -630,21 +630,15 @@ const PRINCIPES = [
 
 export default function Sitemap() {
   const [activeTab, setActiveTab] = useState(0);
-  const TABS_NAV = ["Arborescence", "Catégorisation & Labels", "Recherche", "Principes de conception"];
+  const TABS_NAV = ["Arborescence", "Recherche"];
 
   return (
     <div className="bg-white min-h-screen p-4" style={{ fontFamily: "system-ui, sans-serif" }}>
 
       {/* En-tête */}
-      <div className="border-b-2 border-gray-800 pb-3 mb-4 flex items-end justify-between">
-        <div>
-          <div className="text-xl font-bold text-gray-900 tracking-wide">OCCITANICA — Arborescence V3</div>
-          <div className="text-gray-400 text-xs mt-0.5">Thomas Iris × UX Assistant · Mai 2026</div>
-        </div>
-        <div className="text-right text-gray-400 text-xs">
-          <div>5 Espaces · Territoires · Collections (N1 distinct) · Header unifié</div>
-          <div>Agenda externalisé · Footer Radio France · Galaxie CIRDOC</div>
-        </div>
+      <div className="border-b-2 border-gray-800 pb-3 mb-4">
+        <div className="text-xl font-bold text-gray-900 tracking-wide">OCCITANICA — Arborescence V3</div>
+        <div className="text-gray-400 text-xs mt-0.5">Thomas Iris × UX Assistant · Mai 2026</div>
       </div>
 
       {/* Onglets */}
@@ -686,8 +680,8 @@ export default function Sitemap() {
         </>
       )}
 
-      {/* ── Onglet 1 : Catégorisation & Labels ── */}
-      {activeTab === 1 && (
+      {/* ── Onglet 1 : Catégorisation & Labels ── (masqué) */}
+      {false && (
         <div className="space-y-6">
 
           {/* Intro */}
@@ -782,8 +776,8 @@ export default function Sitemap() {
         </div>
       )}
 
-      {/* ── Onglet 2 : Recherche ── */}
-      {activeTab === 2 && (
+      {/* ── Onglet 1 : Recherche ── */}
+      {activeTab === 1 && (
         <div className="space-y-6">
 
           {/* Décision retenue */}
@@ -859,29 +853,12 @@ export default function Sitemap() {
             </div>
           </div>
 
-          {/* Pourquoi pas de recherche unifiée */}
-          <div>
-            <div className="font-bold text-gray-700 text-xs uppercase tracking-widest mb-2">Pourquoi pas de recherche unifiée ?</div>
-            <div className="grid gap-2" style={{ gridTemplateColumns: "1fr 1fr" }}>
-              {[
-                { icon: "❌", titre: "Le pattern dropdown échoue", texte: "Demander à l'utilisateur «cherches-tu un document ou du contenu ?» avant même qu'il tape sa requête génère de la friction. Les gens pensent à leur besoin, pas à la nature de la donnée. Réf. Numistral — confusion observée." },
-                { icon: "✅", titre: "La navigation dicte l'intention", texte: "Dans les espaces éditoriaux → recherche de contenu. Dans Collections → recherche de documents. Le contexte guide naturellement sans que l'utilisateur ait à choisir." },
-                { icon: "✅", titre: "Gallica a déjà son interface", texte: "La GMB Gallica offre facettes, filtres, visionneuse, export. Dupliquer cela dans Occitanica = complexité inutile. Mieux vaut relier proprement que reproduire imparfaitement." },
-                { icon: "✅", titre: "Les ponts contextuels compensent", texte: "Depuis un article : Pépite de collection, Sources → Gallica, CTA Accéder aux documents. Depuis une Page Collection : CTA Voir les titres. La recherche n'est pas le seul chemin vers les documents." },
-              ].map((r, i) => (
-                <div key={i} className="border border-gray-200 rounded p-2">
-                  <div className="font-bold text-gray-700 text-xs mb-1">{r.icon} {r.titre}</div>
-                  <div className="text-gray-500 leading-relaxed" style={{ fontSize: 10 }}>{r.texte}</div>
-                </div>
-              ))}
-            </div>
-          </div>
 
         </div>
       )}
 
-      {/* ── Onglet 3 : Principes de conception ── */}
-      {activeTab === 3 && (
+      {/* ── Onglet 3 : Principes de conception ── (masqué) */}
+      {false && (
         <div className="space-y-4">
           <div className="border border-gray-200 rounded p-3 bg-gray-50">
             <div className="text-gray-500 text-xs leading-relaxed">

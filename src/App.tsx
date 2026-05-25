@@ -6,6 +6,7 @@ import { PrototypeLayout } from '@/components/features/PrototypeLayout'
 import { DesignSystem } from '@/pages/DesignSystem'
 import { Login } from '@/pages/Login'
 import { Prototype } from '@/pages/Prototype'
+import OccitanicaSitemap from '@/wireframes/Occitanica_Sitemap_V3'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const location = useLocation()
@@ -50,6 +51,17 @@ export function App() {
         element={
           <RequireAuth>
             <DesignSystem />
+          </RequireAuth>
+        }
+      />
+
+      <Route
+        path="/sitemap"
+        element={
+          <RequireAuth>
+            <PrototypeLayout alwaysDesktop>
+              <OccitanicaSitemap />
+            </PrototypeLayout>
           </RequireAuth>
         }
       />
