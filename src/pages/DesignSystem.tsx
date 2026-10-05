@@ -159,7 +159,7 @@ export function DesignSystem() {
           <h1 className="text-sm font-semibold text-text">
             Design System — {PROJECT_DISPLAY_NAME}
           </h1>
-          <Link to="/prototype" className="text-sm text-text/70 hover:text-text">
+          <Link to="/" className="text-sm text-text/70 hover:text-text">
             Retour au prototype
           </Link>
         </div>

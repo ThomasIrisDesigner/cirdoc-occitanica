@@ -1,21 +1,17 @@
 import * as React from 'react'
 import { ArrowLeft, Search, X } from 'lucide-react'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-type EspaceKey = 'langue' | 'musique' | 'fetes' | 'portraits' | 'scene'
-type TerritoireKey = 'gascogne' | 'languedoc' | 'pyrenees' | 'provence'
-type Screen =
-  | 'home'
-  | 'menu'
-  | 'collections'
-  | 'article'
-  | `espace-${EspaceKey}`
-  | `territoire-${TerritoireKey}`
+import {
+  pathForScreen,
+  screenFromPath,
+  type EspaceKey,
+  type Screen,
+  type TerritoireKey,
+} from '@/lib/prototypeRoutes'
 
 // ── Static data ───────────────────────────────────────────────────────────────
 
@@ -1624,17 +1620,21 @@ function ArticleScreen({
 // ── Prototype ─────────────────────────────────────────────────────────────────
 
 export function Prototype() {
-  const [screen, setScreen] = React.useState<Screen>('home')
-  const [prevScreen, setPrevScreen] = React.useState<Screen>('home')
+  const navigate = useNavigate()
+  const { pathname, key } = useLocation()
+  const screen = screenFromPath(pathname)
 
   function go(next: Screen) {
-    setPrevScreen(screen)
-    setScreen(next)
+    navigate(pathForScreen(next))
   }
 
   function goBack() {
-    setScreen(prevScreen)
-    setPrevScreen('home')
+    if (key !== 'default') navigate(-1)
+    else navigate('/')
+  }
+
+  if (!screen) {
+    return <Navigate to="/" replace />
   }
 
   let content: React.ReactNode
@@ -1646,11 +1646,11 @@ export function Prototype() {
   } else if (screen === 'article') {
     content = <ArticleScreen go={go} goBack={goBack} />
   } else if (screen.startsWith('espace-')) {
-    const key = screen.slice('espace-'.length) as EspaceKey
-    content = <EspaceScreen espaceKey={key} go={go} />
+    const espaceKey = screen.slice('espace-'.length) as EspaceKey
+    content = <EspaceScreen key={screen} espaceKey={espaceKey} go={go} />
   } else if (screen.startsWith('territoire-')) {
-    const key = screen.slice('territoire-'.length) as TerritoireKey
-    content = <TerritoireScreen terKey={key} go={go} />
+    const terKey = screen.slice('territoire-'.length) as TerritoireKey
+    content = <TerritoireScreen key={screen} terKey={terKey} go={go} />
   } else {
     content = <HomeScreen go={go} />
   }

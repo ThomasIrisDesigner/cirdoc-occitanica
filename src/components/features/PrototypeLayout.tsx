@@ -51,9 +51,9 @@ export function PrototypeLayout({
           : 'mobile'
       : 'desktop'
 
-  const onPrototype = pathname === '/prototype'
-  const mobileActive = onPrototype && effectiveMode === 'mobile'
   const sitemapActive = pathname === '/sitemap'
+  const onPrototype = !sitemapActive
+  const mobileActive = onPrototype && effectiveMode === 'mobile'
   // Consultation sur téléphone : prototype plein écran, pas le mockup desktop
   const isRealMobileView = !isDesktop && effectiveMode === 'desktop'
 
@@ -65,7 +65,7 @@ export function PrototypeLayout({
       // ignore
     }
     if (!onPrototype) {
-      navigate('/prototype')
+      navigate('/')
     }
   }
 
@@ -87,6 +87,11 @@ export function PrototypeLayout({
 
   // Drag souris vertical sur le mockup mobile (simule le swipe)
   const mobileScrollRef = React.useRef<HTMLDivElement | null>(null)
+
+  React.useEffect(() => {
+    mobileScrollRef.current?.scrollTo({ top: 0 })
+    window.scrollTo({ top: 0 })
+  }, [pathname])
   const dragDownRef = React.useRef(false)
   const dragStartYRef = React.useRef(0)
   const dragStartScrollRef = React.useRef(0)
@@ -102,7 +107,7 @@ export function PrototypeLayout({
       >
         <div className="mx-auto flex h-8 w-full max-w-7xl items-center justify-between px-4">
           <div className="flex min-w-0 items-center gap-2">
-            <Link to="/prototype" className="truncate text-xs text-surface/70">
+            <Link to="/" className="truncate text-xs text-surface/70">
               Thomas Iris. Designer — {PROJECT_DISPLAY_NAME}
             </Link>
           </div>

@@ -24,7 +24,7 @@ export function Login() {
       return
     }
 
-    navigate('/prototype', { replace: true })
+    navigate('/', { replace: true })
   }
 
   return (
