@@ -1,9 +1,8 @@
 import * as React from 'react'
-import { LogOut, Network, Smartphone } from 'lucide-react'
+import { Network, Smartphone } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { PROJECT_DISPLAY_NAME, PROJECT_TYPE } from '@/config/project'
-import { logout } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 
@@ -136,19 +135,6 @@ export function PrototypeLayout({
                 )}
               </div>
             )}
-
-            <a
-              href="/login"
-              aria-label="Déconnexion"
-              onClick={(e) => {
-                e.preventDefault()
-                logout()
-                navigate('/login', { replace: true })
-              }}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-surface/70 transition-colors hover:bg-surface/10 hover:text-surface"
-            >
-              <LogOut className="h-4 w-4" />
-            </a>
           </div>
         </div>
       </div>
