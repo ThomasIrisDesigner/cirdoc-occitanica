@@ -1,10 +1,12 @@
 import * as React from 'react'
-import { ArrowLeft, Search, X } from 'lucide-react'
+import { ArrowLeft, MapPin, Search, X } from 'lucide-react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
+import { GascogneMap } from '@/components/features/GascogneMap'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { TERRITOIRE_SOUS_TITRES } from '@/data/territoires'
 import {
   pathForScreen,
   screenFromPath,
@@ -116,7 +118,6 @@ const ESPACES_CONFIG: Record<EspaceKey, EspaceConfig> = {
 
 type TerritoireConfig = {
   label: string
-  region: string
   docsCount: string
   sections: Array<{ title: string; badge: string; badgeColorVar: string; avatars?: boolean }>
   hasAgenda: boolean
@@ -126,7 +127,6 @@ type TerritoireConfig = {
 const TERRITOIRES_CONFIG: Record<TerritoireKey, TerritoireConfig> = {
   gascogne: {
     label: 'Gascogne',
-    region: 'Sud-Ouest occitan',
     docsCount: '1 240',
     sections: [
       { title: 'Musique',            badge: 'Archive',  badgeColorVar: '--occ-espace-musique' },
@@ -141,7 +141,6 @@ const TERRITOIRES_CONFIG: Record<TerritoireKey, TerritoireConfig> = {
   },
   languedoc: {
     label: 'Languedoc',
-    region: "Cœur de l'Occitanie",
     docsCount: '2 180',
     sections: [
       { title: 'Langue',             badge: 'Article',  badgeColorVar: '--occ-espace-langue' },
@@ -157,7 +156,6 @@ const TERRITOIRES_CONFIG: Record<TerritoireKey, TerritoireConfig> = {
   },
   pyrenees: {
     label: 'Pyrénées',
-    region: 'Occitan & gascon pyrénéen',
     docsCount: '890',
     sections: [
       { title: 'Musique',            badge: 'Archive',  badgeColorVar: '--occ-espace-musique' },
@@ -169,7 +167,6 @@ const TERRITOIRES_CONFIG: Record<TerritoireKey, TerritoireConfig> = {
   },
   provence: {
     label: 'Provence',
-    region: 'Occitan provençal',
     docsCount: '760',
     sections: [
       { title: 'Langue',        badge: 'Article',  badgeColorVar: '--occ-espace-langue' },
@@ -182,6 +179,16 @@ const TERRITOIRES_CONFIG: Record<TerritoireKey, TerritoireConfig> = {
       { date: '5 juil.', lieu: 'Aix-en-Provence', title: 'Fèsto Vierginenco' },
     ],
   },
+}
+
+// Tags fictifs — à remplacer par les vraies localisations des contenus à l'intégration.
+const TERRITOIRE_LOCALISATIONS: Record<TerritoireKey | 'limousin' | 'perigord', string[]> = {
+  gascogne: ['Tout', 'Auch', 'Bordeaux', 'Pau', 'Bayonne', 'Gers'],
+  languedoc: ['Tout', 'Toulouse', 'Montpellier', 'Nîmes', 'Carcassonne'],
+  provence: ['Tout', 'Marseille', 'Aix-en-Provence', 'Arles', 'Nice'],
+  pyrenees: ['Tout', 'Foix', 'Tarbes', 'Perpignan'],
+  limousin: ['Tout', 'Limoges', 'Brive', 'Tulle'],
+  perigord: ['Tout', 'Périgueux', 'Sarlat', 'Bergerac'],
 }
 
 // Territoire pills on home — only the 4 with full pages get navigation
@@ -495,14 +502,16 @@ function SectionSlider({
   badge,
   badgeColorVar,
   onCardClick,
+  withDivider = true,
 }: {
   title: string
   badge: string
   badgeColorVar: string
   onCardClick?: () => void
+  withDivider?: boolean
 }) {
   return (
-    <SliderSection title={title} withDivider>
+    <SliderSection title={title} withDivider={withDivider}>
       {Array.from({ length: 3 }).map((_, idx) => (
         <button
           // eslint-disable-next-line react/no-array-index-key
@@ -533,9 +542,9 @@ function SectionSlider({
 
 // ── AvatarSlider — slider de personnalités avec avatar rond ───────────────────
 
-function AvatarSlider({ title }: { title: string }) {
+function AvatarSlider({ title, withDivider = true }: { title: string; withDivider?: boolean }) {
   return (
-    <SliderSection title={title} withDivider>
+    <SliderSection title={title} withDivider={withDivider}>
       {Array.from({ length: 4 }).map((_, idx) => (
         <div
           // eslint-disable-next-line react/no-array-index-key
@@ -1147,6 +1156,42 @@ function MenuScreen({ go }: { go: (screen: Screen) => void }) {
   )
 }
 
+function FilterTags({
+  tags,
+  activeColorVar,
+}: {
+  tags: string[]
+  activeColorVar: string
+}) {
+  const [activeTab, setActiveTab] = React.useState(0)
+
+  return (
+    <div className="border-b border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))]">
+      <HorizontalScroller variant="compact">
+        {tags.map((t, idx) => {
+          const active = idx === activeTab
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setActiveTab(idx)}
+              className={[
+                'h-8 flex-none whitespace-nowrap rounded-full px-4 text-[12px] font-semibold transition-colors',
+                active
+                  ? 'text-white'
+                  : 'border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))] hover:bg-[rgb(var(--occ-light))]',
+              ].join(' ')}
+              style={active ? { background: rgbFromVar(activeColorVar) } : undefined}
+            >
+              {t}
+            </button>
+          )
+        })}
+      </HorizontalScroller>
+    </div>
+  )
+}
+
 // ── EspaceScreen — générique pour les 5 espaces ───────────────────────────────
 
 function EspaceScreen({
@@ -1158,7 +1203,6 @@ function EspaceScreen({
 }) {
   const espaceInfo = espaces.find((e) => e.key === espaceKey)!
   const config = ESPACES_CONFIG[espaceKey]
-  const [activeTab, setActiveTab] = React.useState(0)
 
   return (
     <div className="min-h-[calc(100dvh-32px)] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))]">
@@ -1180,30 +1224,7 @@ function EspaceScreen({
         </div>
       </div>
 
-      {/* Tabs sous-espaces */}
-      <div className="border-b border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))]">
-        <HorizontalScroller variant="compact">
-          {config.tabs.map((t, idx) => {
-            const active = idx === activeTab
-            return (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setActiveTab(idx)}
-                className={[
-                  'h-8 flex-none whitespace-nowrap rounded-full px-4 text-[12px] font-semibold transition-colors',
-                  active
-                    ? 'text-white'
-                    : 'border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))] hover:bg-[rgb(var(--occ-light))]',
-                ].join(' ')}
-                style={active ? { background: rgbFromVar(espaceInfo.colorVar) } : undefined}
-              >
-                {t}
-              </button>
-            )
-          })}
-        </HorizontalScroller>
-      </div>
+      <FilterTags tags={config.tabs} activeColorVar={espaceInfo.colorVar} />
 
       {/* À la une */}
       <section className="px-5 pt-6">
@@ -1313,6 +1334,7 @@ function TerritoireScreen({
   go: (screen: Screen) => void
 }) {
   const config = TERRITOIRES_CONFIG[terKey]
+  const [mapOpen, setMapOpen] = React.useState(false)
 
   return (
     <div className="min-h-[calc(100dvh-32px)] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))]">
@@ -1324,20 +1346,56 @@ function TerritoireScreen({
         style={{ background: rgbFromVar('--occ-brand') }}
       >
         <div className="text-[20px] font-extrabold text-white">{config.label}</div>
-        <div className="mt-1 text-[12px] text-white/75">{config.region}</div>
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <div className="min-w-0 text-[12px] text-white/75">{TERRITOIRE_SOUS_TITRES[terKey]}</div>
+          <button
+            type="button"
+            aria-expanded={mapOpen}
+            aria-controls="territoire-carte"
+            onClick={() => setMapOpen((open) => !open)}
+            className="inline-flex shrink-0 items-center gap-1 text-[12px] text-white/90"
+          >
+            {mapOpen ? (
+              <X className="h-3.5 w-3.5" strokeWidth={2} />
+            ) : (
+              <MapPin className="h-3.5 w-3.5" strokeWidth={2} />
+            )}
+            {mapOpen ? 'Fermer' : 'Carte'}
+          </button>
+        </div>
+
+        <div
+          id="territoire-carte"
+          className={[
+            'grid transition-[grid-template-rows] duration-300 ease-out',
+            mapOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+          ].join(' ')}
+        >
+          <div
+            className={[
+              'overflow-hidden transition-opacity duration-300',
+              mapOpen ? 'opacity-100' : 'opacity-0',
+            ].join(' ')}
+          >
+            {terKey === 'gascogne' ? (
+              <GascogneMap />
+            ) : (
+              <div className="mt-3 flex h-16 items-center justify-center rounded-lg border border-[rgb(var(--occ-border))] bg-[#dce8e8]">
+                <span className="text-[11px] italic text-[rgb(var(--occ-gray))]">
+                  Carte — {config.label}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Mini carte OSM */}
-      <div className="mx-5 mt-4 flex h-16 items-center justify-center rounded-lg border border-[rgb(var(--occ-border))] bg-[#dce8e8]">
-        <span className="text-[11px] italic text-[rgb(var(--occ-gray))]">
-          Carte — {config.label}
-        </span>
-      </div>
+      <FilterTags tags={TERRITOIRE_LOCALISATIONS[terKey]} activeColorVar="--occ-brand" />
 
       {/* Sections thématiques */}
-      {config.sections.map((s) =>
+      {config.sections.map((s, index) =>
         s.avatars ? (
-          <AvatarSlider key={s.title} title={s.title} />
+          <AvatarSlider key={s.title} title={s.title} withDivider={index > 0} />
         ) : (
           <SectionSlider
             key={s.title}
@@ -1345,6 +1403,7 @@ function TerritoireScreen({
             badge={s.badge}
             badgeColorVar={s.badgeColorVar}
             onCardClick={() => go('article')}
+            withDivider={index > 0}
           />
         ),
       )}
