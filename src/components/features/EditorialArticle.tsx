@@ -10,10 +10,22 @@ import {
 import type { Screen } from '@/lib/prototypeRoutes'
 import { typography } from '@/styles/typography'
 
+export type Crumb = { label: string; to?: string }
+
 type EditorialArticleProps = {
   header: ReactNode
   onNavigate: (screen: Screen) => void
+  onPath: (path: string) => void
+  crumbs: Crumb[]
   article?: EditorialArticleContent
+}
+
+function Note({ children }: { children: string }) {
+  return (
+    <p className="font-ui pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[rgb(var(--occ-brand))]">
+      {children}
+    </p>
+  )
 }
 
 function Visuel({ className }: { className?: string }) {
@@ -236,9 +248,12 @@ function BodyBlock({
 export function EditorialArticle({
   header,
   onNavigate,
+  onPath,
+  crumbs,
   article = EDITORIAL_ARTICLE,
 }: EditorialArticleProps) {
   const accent = `rgb(var(${article.kickerColorVar}))`
+  const notes = article.notes
   let headingCount = 0
 
   return (
@@ -247,14 +262,51 @@ export function EditorialArticle({
 
       <article>
         <header className="px-5 pt-6">
-          <p className={typography.editorialKicker} style={{ color: accent }}>
+          <nav aria-label="Fil d'Ariane">
+            {notes?.breadcrumb ? <Note>{notes.breadcrumb}</Note> : null}
+            <ol className="flex flex-wrap items-center gap-x-1.5">
+              {crumbs.map((crumb, index) => {
+                const current = index === crumbs.length - 1
+                return (
+                  <li key={`${crumb.label}-${index}`} className="flex items-center gap-1.5">
+                    {index > 0 ? (
+                      <span aria-hidden className="font-ui text-[12px] text-[rgb(var(--occ-gray))]">
+                        /
+                      </span>
+                    ) : null}
+                    {current || !crumb.to ? (
+                      <span className="font-ui text-[12px] font-medium text-[rgb(var(--occ-dark))]">
+                        {crumb.label}
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onPath(crumb.to!)}
+                        className="font-ui text-[12px] text-[rgb(var(--occ-gray))] underline decoration-[rgb(var(--occ-border))] underline-offset-2"
+                      >
+                        {crumb.label}
+                      </button>
+                    )}
+                  </li>
+                )
+              })}
+            </ol>
+          </nav>
+          {notes?.kicker ? <div className="pt-4"><Note>{notes.kicker}</Note></div> : null}
+          <p className={`${typography.editorialKicker} pt-4`} style={{ color: accent }}>
             {article.kicker}
           </p>
-          <h1 className={`${typography.editorialTitle} pt-3`}>{article.title}</h1>
-          <p className={`${typography.editorialChapo} pt-4`}>{article.chapo}</p>
-          <div className="pt-4">
+          {notes?.title ? <div className="pt-4"><Note>{notes.title}</Note></div> : null}
+          <h1 className={`${typography.editorialTitle} ${notes?.title ? 'pt-1' : 'pt-3'}`}>
+            {article.title}
+          </h1>
+          {notes?.chapo ? <div className="pt-4"><Note>{notes.chapo}</Note></div> : null}
+          <p className={`${typography.editorialChapo} pt-3`}>{article.chapo}</p>
+          {notes?.byline ? <div className="pt-4"><Note>{notes.byline}</Note></div> : null}
+          <div className={notes?.byline ? 'pt-1' : 'pt-4'}>
             <Byline author={article.author} />
           </div>
+          {notes?.meta ? <div className="pt-3"><Note>{notes.meta}</Note></div> : null}
           <p className={`${typography.editorialMeta} pt-2`}>{article.meta}</p>
         </header>
 
@@ -270,10 +322,12 @@ export function EditorialArticle({
         ) : null}
 
         <figure className="flex flex-col gap-2 pt-6">
+          {notes?.hero ? <div className="px-5"><Note>{notes.hero}</Note></div> : null}
           <div className="aspect-[310/174] overflow-hidden bg-[rgb(var(--occ-dark))]">
             <Photo src={article.heroSrc} alt="" />
           </div>
           <figcaption className="px-5">
+            {notes?.legend ? <Note>{notes.legend}</Note> : null}
             <Legend caption={article.heroCaption} credit={article.heroCredit} />
           </figcaption>
         </figure>
@@ -283,18 +337,17 @@ export function EditorialArticle({
             const isFirstHeading = block.type === 'heading' && headingCount === 0
             if (block.type === 'heading') headingCount += 1
             return (
-              <BodyBlock
-                key={`${block.type}-${index}`}
-                block={block}
-                accent={accent}
-                isFirstHeading={isFirstHeading}
-              />
+              <div key={`${block.type}-${index}`}>
+                {block.note ? <Note>{block.note}</Note> : null}
+                <BodyBlock block={block} accent={accent} isFirstHeading={isFirstHeading} />
+              </div>
             )
           })}
         </div>
 
         {article.sources?.length ? (
           <section className="border-t border-[rgb(var(--occ-border))] px-5 py-8">
+            {notes?.sources ? <Note>{notes.sources}</Note> : null}
             <h2 className={typography.editorialLabel}>Sources</h2>
             <ul className="pt-3">
               {article.sources.map((source) => (
@@ -312,6 +365,7 @@ export function EditorialArticle({
       </article>
 
       <aside className="bg-[rgb(var(--occ-light))] px-5 py-8">
+        {notes?.autour ? <Note>{notes.autour}</Note> : null}
         <h2 className={typography.editorialLabel}>Autour de cet article</h2>
 
         {article.territoire ? (
@@ -324,6 +378,7 @@ export function EditorialArticle({
               <GascogneMap className="mt-0 rounded-md border-[rgb(var(--occ-border))]" />
             </div>
             <span>
+              {notes?.territoire ? <Note>{notes.territoire}</Note> : null}
               <span className={typography.editorialLabel}>Territoire</span>
               <span className="font-ui block pt-1 text-[15px] font-semibold leading-snug">
                 {article.territoire.name}
@@ -343,6 +398,7 @@ export function EditorialArticle({
           >
             <Visuel className="h-16 w-16 flex-none rounded-full" />
             <span>
+              {notes?.portrait ? <Note>{notes.portrait}</Note> : null}
               <span className={typography.editorialLabel}>Portrait</span>
               <span className="font-ui block pt-1 text-[15px] font-semibold leading-snug">
                 {article.portrait.name}
@@ -355,6 +411,7 @@ export function EditorialArticle({
         ) : null}
 
         <div className="mt-8">
+          {notes?.suggestions ? <Note>{notes.suggestions}</Note> : null}
           <h3 className={typography.editorialLabel}>À lire ensuite</h3>
           <ul className="pt-2">
             {article.suggestions.map((item) => (
@@ -380,13 +437,17 @@ export function EditorialArticle({
         </div>
 
         {article.maleta ? (
-          <p className={`${typography.editorialCaption} mt-6 border-t border-[rgb(var(--occ-border))] pt-4 text-[rgb(var(--occ-dark))]`}>
-            {article.maleta}
-            <span className={`${typography.editorialCredit} block pt-1`}>La Maleta ↗</span>
-          </p>
+          <div className="mt-6 border-t border-[rgb(var(--occ-border))] pt-4">
+            {notes?.maleta ? <Note>{notes.maleta}</Note> : null}
+            <p className={`${typography.editorialCaption} text-[rgb(var(--occ-dark))]`}>
+              {article.maleta}
+            </p>
+            <p className={`${typography.editorialCredit} pt-1`}>La Maleta ↗</p>
+          </div>
         ) : null}
 
-        <ul className="flex flex-wrap gap-2 pt-6">
+        {notes?.tags ? <div className="pt-6"><Note>{notes.tags}</Note></div> : null}
+        <ul className={`flex flex-wrap gap-2 ${notes?.tags ? 'pt-2' : 'pt-6'}`}>
           {article.tags.map((tag) => (
             <li key={tag.label}>
               <button

@@ -24,7 +24,7 @@ export function pathForScreen(screen: Screen): string {
   if (screen === 'home') return '/'
   if (screen === 'menu') return '/menu'
   if (screen === 'collections') return '/collections'
-  if (screen === 'article') return '/article'
+  if (screen === 'article') return '/espaces/musique/boha'
   if (screen.startsWith('espace-')) return `/espaces/${screen.slice('espace-'.length)}`
   return `/territoires/${screen.slice('territoire-'.length)}`
 }
@@ -42,4 +42,13 @@ export function screenFromPath(pathname: string): Screen | null {
   if (territoire && isTerritoireKey(territoire[1])) return `territoire-${territoire[1]}`
 
   return null
+}
+
+/** Article sous un espace : /espaces/:espace/:slug */
+export function articleFromPath(
+  pathname: string,
+): { espace: EspaceKey; slug: string } | null {
+  const match = pathname.match(/^\/espaces\/([^/]+)\/([^/]+)$/)
+  if (!match || !isEspaceKey(match[1])) return null
+  return { espace: match[1], slug: match[2] }
 }

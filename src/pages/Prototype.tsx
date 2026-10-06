@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { TERRITOIRE_SOUS_TITRES } from '@/data/territoires'
+import { getEditorialArticle, articlePath, EDITORIAL_SPECIMEN, type EditorialArticleContent } from '@/data/editorialArticle'
 import {
+  articleFromPath,
   pathForScreen,
   screenFromPath,
   type EspaceKey,
@@ -1143,7 +1145,13 @@ function HomeScreen({ go }: { go: (screen: Screen) => void }) {
 
 // ── MenuScreen ────────────────────────────────────────────────────────────────
 
-function MenuScreen({ go }: { go: (screen: Screen) => void }) {
+function MenuScreen({
+  go,
+  onOpenGabarit,
+}: {
+  go: (screen: Screen) => void
+  onOpenGabarit: () => void
+}) {
   const [menuEspacesOpen, setMenuEspacesOpen] = React.useState(true)
   const [menuTerritoiresOpen, setMenuTerritoiresOpen] = React.useState(false)
 
@@ -1247,6 +1255,15 @@ function MenuScreen({ go }: { go: (screen: Screen) => void }) {
             className="flex w-full items-center justify-between rounded-lg border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-light))] px-4 py-3"
           >
             <span className="text-[14px] font-semibold">Collections</span>
+            <span className="text-[14px] text-[rgb(var(--occ-brand))]">→</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenGabarit}
+            className="flex w-full items-center justify-between rounded-lg border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-light))] px-4 py-3"
+          >
+            <span className="text-[14px] font-semibold">Gabarit article</span>
             <span className="text-[14px] text-[rgb(var(--occ-brand))]">→</span>
           </button>
         </div>
@@ -1669,16 +1686,30 @@ function CollectionsScreen({ go }: { go: (screen: Screen) => void }) {
 // ── ArticleScreen ─────────────────────────────────────────────────────────────
 
 function ArticleScreen({
+  article,
   go,
   goBack,
+  onPath,
 }: {
+  article: EditorialArticleContent
   go: (screen: Screen) => void
   goBack: () => void
+  onPath: (path: string) => void
 }) {
+  const espace = espaces.find((item) => item.key === article.espace)
+  const crumbs = [
+    { label: 'Accueil', to: '/' },
+    ...(espace ? [{ label: espace.label, to: `/espaces/${espace.key}` }] : []),
+    { label: article.title },
+  ]
+
   return (
     <EditorialArticle
+      article={article}
+      crumbs={crumbs}
       header={<MobileHeader backLabel="Retour" onBack={goBack} onMenu={() => go('menu')} />}
       onNavigate={go}
+      onPath={onPath}
     />
   )
 }
@@ -1688,6 +1719,10 @@ function ArticleScreen({
 export function Prototype() {
   const navigate = useNavigate()
   const { pathname, key } = useLocation()
+  const articleRef = articleFromPath(pathname)
+  const article = articleRef
+    ? getEditorialArticle(articleRef.espace, articleRef.slug)
+    : undefined
   const screen = screenFromPath(pathname)
 
   function go(next: Screen) {
@@ -1699,22 +1734,36 @@ export function Prototype() {
     else navigate('/')
   }
 
-  if (!screen) {
+  if (articleRef && !article) {
+    return <Navigate to="/" replace />
+  }
+
+  if (!article && !screen) {
     return <Navigate to="/" replace />
   }
 
   let content: React.ReactNode
 
-  if (screen === 'menu') {
-    content = <MenuScreen go={go} />
+  if (article) {
+    content = (
+      <ArticleScreen
+        key={pathname}
+        article={article}
+        go={go}
+        goBack={goBack}
+        onPath={(path) => navigate(path)}
+      />
+    )
+  } else if (screen === 'menu') {
+    content = (
+      <MenuScreen go={go} onOpenGabarit={() => navigate(articlePath(EDITORIAL_SPECIMEN))} />
+    )
   } else if (screen === 'collections') {
     content = <CollectionsScreen go={go} />
-  } else if (screen === 'article') {
-    content = <ArticleScreen go={go} goBack={goBack} />
-  } else if (screen.startsWith('espace-')) {
+  } else if (screen && screen.startsWith('espace-')) {
     const espaceKey = screen.slice('espace-'.length) as EspaceKey
     content = <EspaceScreen key={screen} espaceKey={espaceKey} go={go} />
-  } else if (screen.startsWith('territoire-')) {
+  } else if (screen && screen.startsWith('territoire-')) {
     const terKey = screen.slice('territoire-'.length) as TerritoireKey
     content = <TerritoireScreen key={screen} terKey={terKey} go={go} />
   } else {

@@ -1,4 +1,4 @@
-import type { Screen } from '@/lib/prototypeRoutes'
+import type { EspaceKey, Screen } from '@/lib/prototypeRoutes'
 
 /**
  * Gabarit éditorial.
@@ -8,7 +8,9 @@ import type { Screen } from '@/lib/prototypeRoutes'
 
 const BOHA = '/images/boha-cornemuse-landes.jpg'
 
-export type EditorialBlock =
+type EditorialNote = { note?: string }
+
+export type EditorialBlock = (
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; text: string }
   | { type: 'quote'; text: string; attribution: string }
@@ -34,12 +36,37 @@ export type EditorialBlock =
       caption: string
       credit: string
     }
+) &
+  EditorialNote
+
+export type EditorialNotes = {
+  breadcrumb?: string
+  kicker?: string
+  title?: string
+  chapo?: string
+  byline?: string
+  meta?: string
+  hero?: string
+  legend?: string
+  sources?: string
+  autour?: string
+  territoire?: string
+  portrait?: string
+  suggestions?: string
+  maleta?: string
+  tags?: string
+}
 
 export type EditorialArticleContent = {
+  /** Segment d'URL : /espaces/:espace/:slug */
+  espace: EspaceKey
+  slug: string
   kicker: string
   kickerColorVar: string
   title: string
   chapo: string
+  /** Libellés affichés sur la page générique, absents d'un article réel. */
+  notes?: EditorialNotes
   /** « Nom, rôle » — le rôle s'affiche après un tiret, comme sur Yroise. */
   author: string
   meta: string
@@ -57,6 +84,8 @@ export type EditorialArticleContent = {
 }
 
 export const EDITORIAL_ARTICLE: EditorialArticleContent = {
+  espace: 'musique',
+  slug: 'boha',
   kicker: 'Article · Musique',
   kickerColorVar: '--occ-espace-musique',
   title: 'Boha',
@@ -162,4 +191,111 @@ export const EDITORIAL_ARTICLE: EditorialArticleContent = {
     { label: 'Gascogne', screen: 'territoire-gascogne' },
     { label: 'Landes', screen: 'territoire-gascogne' },
   ],
+}
+
+const LOREM =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.'
+
+const LOREM_SHORT =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+
+/** Page générique : mêmes composants, chacun nommé, corps en lorem ipsum. */
+export const EDITORIAL_SPECIMEN: EditorialArticleContent = {
+  espace: 'musique',
+  slug: 'titre-de-l-article',
+  kicker: 'Article · Espace',
+  kickerColorVar: '--occ-espace-musique',
+  title: 'Titre de l’article',
+  chapo: LOREM_SHORT,
+  author: 'Prénom Nom, Rôle',
+  meta: '6 min de lecture',
+  heroCaption: 'Légende du visuel principal. Lorem ipsum dolor sit amet.',
+  heroCredit: 'Crédit · Source',
+  notes: {
+    breadcrumb: 'Fil d’Ariane',
+    kicker: 'Rubrique',
+    title: 'Titre — H1',
+    chapo: 'Chapô',
+    byline: 'Signature',
+    meta: 'Mention',
+    hero: 'Visuel',
+    legend: 'Légende',
+    sources: 'Sources',
+    autour: 'Suite de lecture',
+    territoire: 'Territoire',
+    portrait: 'Portrait lié',
+    suggestions: 'À lire ensuite',
+    maleta: 'Ressource pédagogique',
+    tags: 'Tags',
+  },
+  blocks: [
+    { type: 'paragraph', note: 'Corps', text: LOREM },
+    { type: 'paragraph', text: LOREM_SHORT },
+    {
+      type: 'quote',
+      note: 'Citation',
+      text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.',
+      attribution: 'Source de la citation',
+    },
+    { type: 'heading', note: 'Intertitre — H2', text: 'Intertitre' },
+    { type: 'paragraph', text: LOREM },
+    {
+      type: 'pair',
+      note: 'Paire d’images',
+      caption: 'Légende commune aux deux visuels.',
+      credit: 'Crédit · Source',
+    },
+    { type: 'paragraph', text: LOREM_SHORT },
+    {
+      type: 'video',
+      note: 'Vidéo',
+      title: 'Titre de la vidéo',
+      embedSrc: 'https://www.youtube-nocookie.com/embed/ky72EffSGPw',
+      caption: 'Légende de la vidéo. Lorem ipsum dolor sit amet.',
+      credit: 'Crédit · Source',
+    },
+    { type: 'heading', text: 'Deuxième intertitre' },
+    { type: 'paragraph', text: LOREM_SHORT },
+    {
+      type: 'carousel',
+      note: 'Carrousel',
+      slides: [{ label: 'Visuel 1' }, { label: 'Visuel 2' }, { label: 'Visuel 3' }],
+      caption: 'Légende du carrousel. Lorem ipsum dolor sit amet.',
+      credit: 'Crédit · Source',
+    },
+  ],
+  sources: [{ title: 'Titre de la source', detail: 'Gallica' }],
+  territoire: {
+    name: 'Territoire',
+    line: 'Sous-titre géographique',
+    screen: 'territoire-gascogne',
+  },
+  portrait: {
+    name: 'Prénom Nom',
+    line: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+    screen: 'espace-portraits',
+  },
+  suggestions: [
+    { type: 'Article', title: 'Titre d’un article lié', screen: 'article' },
+    { type: 'Fiche PCI', title: 'Titre d’une fiche liée', screen: 'espace-fetes' },
+    { type: 'Portrait', title: 'Titre d’un portrait lié', screen: 'espace-portraits' },
+  ],
+  maleta: 'Intitulé du lien pédagogique',
+  tags: [
+    { label: 'Espace', screen: 'espace-musique' },
+    { label: 'Territoire', screen: 'territoire-gascogne' },
+  ],
+}
+
+const ARTICLES = [EDITORIAL_ARTICLE, EDITORIAL_SPECIMEN]
+
+export function articlePath(article: Pick<EditorialArticleContent, 'espace' | 'slug'>): string {
+  return `/espaces/${article.espace}/${article.slug}`
+}
+
+export function getEditorialArticle(
+  espace: string,
+  slug: string,
+): EditorialArticleContent | undefined {
+  return ARTICLES.find((article) => article.espace === espace && article.slug === slug)
 }
