@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { ArrowLeft, MapPin, Search, X } from 'lucide-react'
+import { ArrowLeft, ChevronDown, MapPin, Search, X } from 'lucide-react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
+import { EditorialArticle } from '@/components/features/EditorialArticle'
 import { GascogneMap } from '@/components/features/GascogneMap'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -289,6 +290,103 @@ function Chip({
   )
 }
 
+// ── LanguageSwitcher ──────────────────────────────────────────────────────────
+
+type LangCode = 'fr' | 'oc'
+
+const LANG_STORAGE_KEY = 'occ-lang'
+const LANG_OPTIONS: Array<{ code: LangCode; label: string }> = [
+  { code: 'fr', label: 'FR - Français' },
+  { code: 'oc', label: 'OC - Occitan' },
+]
+
+function readLang(): LangCode {
+  try {
+    return sessionStorage.getItem(LANG_STORAGE_KEY) === 'oc' ? 'oc' : 'fr'
+  } catch {
+    return 'fr'
+  }
+}
+
+function LanguageSwitcher() {
+  const [lang, setLang] = React.useState<LangCode>(readLang)
+  const [open, setOpen] = React.useState(false)
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+
+  React.useEffect(() => {
+    if (!open) return
+    function onPointerDown(event: PointerEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  function choose(next: LangCode) {
+    setLang(next)
+    setOpen(false)
+    try {
+      sessionStorage.setItem(LANG_STORAGE_KEY, next)
+    } catch {
+      // ignore
+    }
+  }
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Choisir la langue"
+        onClick={() => setOpen((value) => !value)}
+        className="inline-flex items-center gap-1 text-[12px] font-semibold text-[rgb(var(--occ-dark))]"
+      >
+        {lang === 'fr' ? 'FR' : 'OC'}
+        <ChevronDown
+          className={['h-3.5 w-3.5 transition-transform', open ? 'rotate-180' : ''].join(' ')}
+          strokeWidth={2}
+        />
+      </button>
+
+      {open ? (
+        <ul
+          role="listbox"
+          aria-label="Langue"
+          className="absolute right-0 top-full z-40 mt-2 w-36 overflow-hidden rounded-lg border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))] py-1"
+        >
+          {LANG_OPTIONS.map((option) => {
+            const selected = option.code === lang
+            return (
+              <li key={option.code} role="option" aria-selected={selected}>
+                <button
+                  type="button"
+                  onClick={() => choose(option.code)}
+                  className={[
+                    'flex w-full items-center px-3 py-2 text-left text-[12px]',
+                    selected
+                      ? 'font-semibold text-[rgb(var(--occ-brand))]'
+                      : 'text-[rgb(var(--occ-dark))] hover:bg-[rgb(var(--occ-light))]',
+                  ].join(' ')}
+                >
+                  {option.label}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      ) : null}
+    </div>
+  )
+}
+
 // ── MobileHeader ──────────────────────────────────────────────────────────────
 
 function MobileHeader({
@@ -346,6 +444,7 @@ function MobileHeader({
         >
           <Search className="h-5 w-5" />
         </Button>
+        <LanguageSwitcher />
       </div>
     </div>
   )
@@ -1576,103 +1675,11 @@ function ArticleScreen({
   go: (screen: Screen) => void
   goBack: () => void
 }) {
-  const musique = espaces.find((e) => e.key === 'musique')!
-  const tags = ['Musique', 'Archives sonores', 'Patrimoine vivant', 'Gascogne']
-  const suggestions = [
-    { title: 'Archives sonores — collectage en Occitanie', tag: 'Archive' },
-    { title: 'Portrait : une figure de la musique occitane', tag: 'Portrait' },
-    { title: 'Instruments & danses — fiche PCI', tag: 'PCI' },
-  ]
-
   return (
-    <div className="min-h-[calc(100dvh-32px)] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))]">
-      <MobileHeader backLabel="Retour" onBack={goBack} onMenu={() => go('menu')} />
-
-      {/* Header visuel */}
-      <div className="relative">
-        <PlaceholderImage className="h-44 w-full" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-black/80" />
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
-          <div className="mb-2 flex flex-wrap gap-2">
-            <Badge
-              className="border-0"
-              style={{ background: 'rgba(255,255,255,0.92)', color: rgbFromVar(musique.colorVar) }}
-            >
-              Article · Musique
-            </Badge>
-            <Badge className="border-0 bg-black/30 text-white">Lecture · 6 min</Badge>
-          </div>
-          <div className="space-y-2">
-            <div className="h-3 w-11/12 rounded bg-white/90" />
-            <div className="h-3 w-8/12 rounded bg-white/80" />
-          </div>
-        </div>
-      </div>
-
-      {/* Contenu */}
-      <section className="px-5 pt-5">
-        <div className="mb-3 flex items-center gap-2 text-[12px] text-[rgb(var(--occ-gray))]">
-          <span>Publié le 14 juin 2026</span>
-          <span className="text-[rgb(var(--occ-med))]">·</span>
-          <span>Occitanica</span>
-        </div>
-
-        <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            // eslint-disable-next-line react/no-array-index-key
-            <div key={i} className="space-y-2">
-              <div className="h-2 w-11/12 rounded bg-[rgb(var(--occ-med))]" />
-              <div className="h-2 w-10/12 rounded bg-[rgb(var(--occ-light))]" />
-              <div className="h-2 w-9/12 rounded bg-[rgb(var(--occ-light))]" />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <Divider />
-
-      <section className="px-5 pt-6">
-        <SectionLabel>Tags</SectionLabel>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {tags.map((t) => (
-            <Chip key={t} label={t} />
-          ))}
-        </div>
-      </section>
-
-      <Divider />
-
-      <section className="px-5 pt-6 pb-8">
-        <SectionLabel>Suggestions</SectionLabel>
-        <div className="mt-3 space-y-3">
-          {suggestions.map((s) => (
-            <button
-              key={s.title}
-              type="button"
-              onClick={() => go('article')}
-              className="flex w-full gap-3 rounded-lg border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))] p-3 text-left transition-colors hover:bg-[rgb(var(--occ-light))]"
-            >
-              <div className="h-14 w-14 flex-none overflow-hidden rounded-md bg-[rgb(var(--occ-light))]">
-                <PlaceholderImage className="h-14 w-14" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div
-                  className="text-[10px] font-bold uppercase tracking-[0.1em]"
-                  style={{ color: rgbFromVar(musique.colorVar) }}
-                >
-                  {s.tag}
-                </div>
-                <div className="mt-2 space-y-1.5">
-                  <div className="h-2 w-10/12 rounded bg-[rgb(var(--occ-med))]" />
-                  <div className="h-2 w-7/12 rounded bg-[rgb(var(--occ-light))]" />
-                </div>
-              </div>
-              <span className="text-[14px] text-[rgb(var(--occ-med))]">›</span>
-            </button>
-          ))}
-        </div>
-      </section>
-    </div>
+    <EditorialArticle
+      header={<MobileHeader backLabel="Retour" onBack={goBack} onMenu={() => go('menu')} />}
+      onNavigate={go}
+    />
   )
 }
 

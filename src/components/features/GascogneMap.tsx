@@ -1,12 +1,14 @@
+import { cn } from '@/lib/utils'
+
 /**
  * Carte de France avec l'aplat de la Gascogne.
  * Contour de la province dérivé de « Carte de la Gascogne » (Oie blanche,
  * Wikimedia Commons, CC BY-SA 3.0), simplifié pour l'affichage.
  * Silhouette de la France : régions métropolitaines, données ouvertes.
  */
-export function GascogneMap() {
+export function GascogneMap({ className }: { className?: string }) {
   return (
-    <div className="mt-3 overflow-hidden rounded-lg border border-white/25">
+    <div className={cn('mt-3 overflow-hidden rounded-lg border border-white/25', className)}>
       <svg
         viewBox="0 0 320.0 315.1"
         role="img"
