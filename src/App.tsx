@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 
 import { PrototypeLayout } from '@/components/features/PrototypeLayout'
 import { DesignSystem } from '@/pages/DesignSystem'
+import { PhonePreview } from '@/pages/PhonePreview'
 import { Prototype } from '@/pages/Prototype'
 import OccitanicaSitemap from '@/wireframes/Occitanica_Sitemap_V3'
 
@@ -16,7 +17,23 @@ function PrototypeChrome() {
 export function App() {
   return (
     <Routes>
-      <Route path="/design-system" element={<DesignSystem />} />
+      <Route
+        path="/design-system"
+        element={
+          <PrototypeLayout alwaysDesktop>
+            <DesignSystem />
+          </PrototypeLayout>
+        }
+      />
+
+      <Route
+        path="/telephone"
+        element={
+          <PrototypeLayout alwaysDesktop>
+            <PhonePreview />
+          </PrototypeLayout>
+        }
+      />
 
       <Route
         path="/sitemap"

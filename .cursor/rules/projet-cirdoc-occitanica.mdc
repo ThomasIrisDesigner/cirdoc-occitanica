@@ -8,7 +8,7 @@ alwaysApply: true
 - **Client / projet**: CIRDOC-Occitanica
 - **Type d’interface**: site grand public
 - **Responsive**: oui (mobile + desktop), **mobile-first**
-- **Phase en cours**: wireframe (palette slate par défaut)
+- **Phase en cours**: habillage mobile. La DA des maquettes (Home, espace, article) fait foi. Les écrans pas encore habillés gardent la palette wireframe `--occ-*`.
 
 # Stack & conventions
 
@@ -17,8 +17,10 @@ alwaysApply: true
 - shadcn/ui en priorité
 - pnpm uniquement
 
-# Design system (wireframe)
+# Design system
 
 - Ne jamais écrire de couleurs en dur (hex/rgb). Utiliser les variables CSS de `src/styles/theme.css`.
-- Typographie via `src/styles/typography.ts` (jamais inline).
+- Les rôles produit (`background`, `action`, `text`, `footer`…) sont la DA. `primary` et `secondary` restent le chrome du prototype.
+- Typographie via `src/styles/typography.ts` (jamais inline). Interface en Bricolage Grotesque, lecture en Source Serif 4.
+- Page de référence : `/design-system`.
 

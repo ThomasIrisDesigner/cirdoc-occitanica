@@ -2,20 +2,51 @@
 @config "../../tailwind.config.ts";
 
 :root {
-  /* Palette slate (wireframe) */
+  /* Chrome du prototype (barre Thomas Iris, composants shadcn). */
   --color-primary: 2 6 23; /* slate-950 */
   --color-secondary: 51 65 85; /* slate-700 */
-  --color-background: 248 250 252; /* slate-50 */
   --color-muted: 241 245 249; /* slate-100 */
-  --color-surface: 255 255 255;
-  --color-border: 226 232 240; /* slate-200 */
-  --color-text: 30 41 59; /* slate-800 */
   --color-card-border: 30 41 59; /* slate-800 */
   --color-danger: 220 38 38; /* red-600 */
   --color-success: 22 163 74; /* green-600 */
   --color-warning: 245 158 11; /* amber-500 */
 
-  /* Occitanica — palette wireframes (v1) */
+  /* DA Occitanica — rôles. Les teintes identiques restent des rôles distincts. */
+  --color-background: 255 255 255; /* background/page */
+  --color-background-warm: 244 239 230; /* background/warm #f4efe6 */
+  --color-surface: 255 255 255; /* surface/default */
+  --color-surface-subtle: 250 246 238; /* surface/subtle #faf6ee */
+  --color-surface-emphasis: 232 220 196; /* surface/emphasis #e8dcc4 */
+  --color-text: 34 33 32; /* text/primary #222120 */
+  --color-text-secondary: 110 98 88; /* text/secondary #6e6258 */
+  --color-text-inverse: 255 255 255; /* text/inverse */
+  --color-text-brand: 184 58 38; /* text/brand #b83a26 */
+  --color-action: 184 58 38; /* action/primary/default */
+  --color-action-hover: 150 48 31; /* action/primary/hover #96301f */
+  --color-action-pressed: 120 39 25; /* action/primary/pressed #782719 */
+  --color-action-content: 255 255 255; /* action/primary/content */
+  --color-action-secondary-bg: 255 255 255; /* action/secondary/background */
+  --color-action-secondary: 184 58 38; /* action/secondary/content */
+  --color-selection: 244 226 217; /* selection/background #f4e2d9 */
+  --color-selection-content: 120 39 25; /* selection/content */
+  --color-focus: 184 58 38; /* focus/ring */
+  --color-icon: 34 33 32; /* icon/default */
+  --color-border: 232 220 196; /* border/subtle */
+  --color-border-strong: 138 121 101; /* border/control #8a7965 */
+  --color-accent-sand: 226 194 149; /* accent/sand #e2c295 */
+  --color-accent-clay: 212 155 133; /* accent/clay #d49b85 */
+  --color-placeholder: 34 33 32; /* placeholder/strong */
+  --color-placeholder-soft: 232 220 196; /* placeholder/soft */
+  --color-media: 34 33 32; /* media/fallback */
+  --color-pagination: 232 220 196; /* pagination/inactive */
+  --color-footer: 120 39 25; /* footer/background #782719 */
+  --color-collections: 34 33 32; /* neutral/950 #222120 */
+
+  --radius-control: 4px;
+  --radius-card: 12px;
+  --radius-pill: 999px;
+
+  /* Occitanica — palette wireframes (v1), encore utilisée par les écrans non habillés. */
   --occ-dark: 24 24 27; /* #18181b */
   --occ-gray: 113 113 122; /* #71717a */
   --occ-light: 244 244 245; /* #f4f4f5 */
@@ -43,9 +74,9 @@ body {
   background: rgb(var(--color-background));
 }
 
-/* Typographie article — mêmes familles que Yroise (Outfit + Source Serif 4). */
+/* Interface : Bricolage Grotesque. Lecture : Source Serif 4. */
 .font-ui {
-  font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
+  font-family: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
 }
 
 .font-editorial {

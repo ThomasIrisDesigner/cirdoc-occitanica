@@ -1,4 +1,4 @@
-import type { EspaceKey, Screen } from '@/lib/prototypeRoutes'
+import { ESPACE_KEYS, type EspaceKey, type Screen, type TerritoireKey } from '@/lib/prototypeRoutes'
 
 /**
  * Gabarit éditorial.
@@ -8,7 +8,10 @@ import type { EspaceKey, Screen } from '@/lib/prototypeRoutes'
 
 const BOHA = '/images/boha-cornemuse-landes.jpg'
 
-type EditorialNote = { note?: string }
+/** Page parente + filtre pré-sélectionné. */
+export function filtrePath(path: string, label: string) {
+  return `${path}?filtre=${encodeURIComponent(label)}`
+}
 
 export type EditorialBlock = (
   | { type: 'heading'; text: string }
@@ -36,37 +39,19 @@ export type EditorialBlock = (
       caption: string
       credit: string
     }
-) &
-  EditorialNote
-
-export type EditorialNotes = {
-  breadcrumb?: string
-  kicker?: string
-  title?: string
-  chapo?: string
-  byline?: string
-  meta?: string
-  hero?: string
-  legend?: string
-  sources?: string
-  autour?: string
-  territoire?: string
-  portrait?: string
-  suggestions?: string
-  maleta?: string
-  tags?: string
-}
+)
 
 export type EditorialArticleContent = {
   /** Segment d'URL : /espaces/:espace/:slug */
   espace: EspaceKey
   slug: string
+  /** Type de contenu. Absent du fil d'Ariane : ce n'est pas un niveau d'arborescence. */
   kicker: string
+  /** Filtre de la page Espace. Absent si l'article n'est pas rangé dans un sous-espace. */
+  sousEspace?: string
   kickerColorVar: string
   title: string
   chapo: string
-  /** Libellés affichés sur la page générique, absents d'un article réel. */
-  notes?: EditorialNotes
   /** « Nom, rôle » — le rôle s'affiche après un tiret, comme sur Yroise. */
   author: string
   meta: string
@@ -80,13 +65,18 @@ export type EditorialArticleContent = {
   portrait?: { name: string; line: string; screen: Screen }
   suggestions: Array<{ type: string; title: string; screen: Screen }>
   maleta?: string
-  tags: Array<{ label: string; screen: Screen }>
+  /**
+   * Sous-ensemble des filtres des pages Espace et Territoire.
+   * href ouvre la page parente avec ce filtre. null : le tag s'affiche, sans navigation.
+   */
+  tags: Array<{ label: string; href: string | null }>
 }
 
 export const EDITORIAL_ARTICLE: EditorialArticleContent = {
   espace: 'musique',
   slug: 'boha',
-  kicker: 'Article · Musique',
+  sousEspace: 'Instruments',
+  kicker: 'Article',
   kickerColorVar: '--occ-espace-musique',
   title: 'Boha',
   chapo: 'Cornemuse des Landes de Gascogne',
@@ -186,10 +176,9 @@ export const EDITORIAL_ARTICLE: EditorialArticleContent = {
   ],
   maleta: 'Écouter une boha en classe',
   tags: [
-    { label: 'Musique', screen: 'espace-musique' },
-    { label: 'Instruments', screen: 'espace-musique' },
-    { label: 'Gascogne', screen: 'territoire-gascogne' },
-    { label: 'Landes', screen: 'territoire-gascogne' },
+    { label: 'Instruments', href: filtrePath('/espaces/musique', 'Instruments') },
+    { label: 'Danses', href: filtrePath('/espaces/musique', 'Danses') },
+    { label: 'Bordeaux', href: filtrePath('/territoires/gascogne', 'Bordeaux') },
   ],
 }
 
@@ -199,11 +188,11 @@ const LOREM =
 const LOREM_SHORT =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
 
-/** Page générique : mêmes composants, chacun nommé, corps en lorem ipsum. */
+/** Même gabarit que la fiche Boha, avec un contenu neutre. */
 export const EDITORIAL_SPECIMEN: EditorialArticleContent = {
   espace: 'musique',
   slug: 'titre-de-l-article',
-  kicker: 'Article · Espace',
+  kicker: 'Article',
   kickerColorVar: '--occ-espace-musique',
   title: 'Titre de l’article',
   chapo: LOREM_SHORT,
@@ -211,44 +200,24 @@ export const EDITORIAL_SPECIMEN: EditorialArticleContent = {
   meta: '6 min de lecture',
   heroCaption: 'Légende du visuel principal. Lorem ipsum dolor sit amet.',
   heroCredit: 'Crédit · Source',
-  notes: {
-    breadcrumb: 'Fil d’Ariane',
-    kicker: 'Rubrique',
-    title: 'Titre — H1',
-    chapo: 'Chapô',
-    byline: 'Signature',
-    meta: 'Mention',
-    hero: 'Visuel',
-    legend: 'Légende',
-    sources: 'Sources',
-    autour: 'Suite de lecture',
-    territoire: 'Territoire',
-    portrait: 'Portrait lié',
-    suggestions: 'À lire ensuite',
-    maleta: 'Ressource pédagogique',
-    tags: 'Tags',
-  },
   blocks: [
-    { type: 'paragraph', note: 'Corps', text: LOREM },
+    { type: 'paragraph', text: LOREM },
     { type: 'paragraph', text: LOREM_SHORT },
     {
       type: 'quote',
-      note: 'Citation',
       text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.',
       attribution: 'Source de la citation',
     },
-    { type: 'heading', note: 'Intertitre — H2', text: 'Intertitre' },
+    { type: 'heading', text: 'Intertitre' },
     { type: 'paragraph', text: LOREM },
     {
       type: 'pair',
-      note: 'Paire d’images',
       caption: 'Légende commune aux deux visuels.',
       credit: 'Crédit · Source',
     },
     { type: 'paragraph', text: LOREM_SHORT },
     {
       type: 'video',
-      note: 'Vidéo',
       title: 'Titre de la vidéo',
       embedSrc: 'https://www.youtube-nocookie.com/embed/ky72EffSGPw',
       caption: 'Légende de la vidéo. Lorem ipsum dolor sit amet.',
@@ -258,7 +227,6 @@ export const EDITORIAL_SPECIMEN: EditorialArticleContent = {
     { type: 'paragraph', text: LOREM_SHORT },
     {
       type: 'carousel',
-      note: 'Carrousel',
       slides: [{ label: 'Visuel 1' }, { label: 'Visuel 2' }, { label: 'Visuel 3' }],
       caption: 'Légende du carrousel. Lorem ipsum dolor sit amet.',
       credit: 'Crédit · Source',
@@ -282,8 +250,10 @@ export const EDITORIAL_SPECIMEN: EditorialArticleContent = {
   ],
   maleta: 'Intitulé du lien pédagogique',
   tags: [
-    { label: 'Espace', screen: 'espace-musique' },
-    { label: 'Territoire', screen: 'territoire-gascogne' },
+    { label: 'Instruments', href: filtrePath('/espaces/musique', 'Instruments') },
+    { label: 'Chants & Voix', href: filtrePath('/espaces/musique', 'Chants & Voix') },
+    { label: 'Bordeaux', href: filtrePath('/territoires/gascogne', 'Bordeaux') },
+    { label: 'Limoges', href: null },
   ],
 }
 
@@ -293,9 +263,32 @@ export function articlePath(article: Pick<EditorialArticleContent, 'espace' | 's
   return `/espaces/${article.espace}/${article.slug}`
 }
 
+/** Gabarit d'exemple. Le sous-espace et le territoire d'origine restent dans l'URL. */
+export function gabaritPath(
+  espace: EspaceKey,
+  sousEspace?: string,
+  territoire?: TerritoireKey,
+) {
+  const params = new URLSearchParams()
+  if (sousEspace) params.set('filtre', sousEspace)
+  if (territoire) params.set('territoire', territoire)
+  const query = params.toString()
+  const path = `/espaces/${espace}/${EDITORIAL_SPECIMEN.slug}`
+  return query ? `${path}?${query}` : path
+}
+
 export function getEditorialArticle(
   espace: string,
   slug: string,
 ): EditorialArticleContent | undefined {
-  return ARTICLES.find((article) => article.espace === espace && article.slug === slug)
+  const found = ARTICLES.find((article) => article.espace === espace && article.slug === slug)
+  if (found) return found
+  if (slug !== EDITORIAL_SPECIMEN.slug) return undefined
+  if (!(ESPACE_KEYS as readonly string[]).includes(espace)) return undefined
+  const key = espace as EspaceKey
+  return {
+    ...EDITORIAL_SPECIMEN,
+    espace: key,
+    kickerColorVar: `--occ-espace-${key}`,
+  }
 }

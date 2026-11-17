@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Network, Smartphone } from 'lucide-react'
+import { Network, QrCode, Smartphone, SwatchBook } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { PROJECT_DISPLAY_NAME, PROJECT_TYPE } from '@/config/project'
@@ -52,7 +52,9 @@ export function PrototypeLayout({
       : 'desktop'
 
   const sitemapActive = pathname === '/sitemap'
-  const onPrototype = !sitemapActive
+  const designSystemActive = pathname === '/design-system'
+  const phoneActive = pathname === '/telephone'
+  const onPrototype = !sitemapActive && !designSystemActive && !phoneActive
   const mobileActive = onPrototype && effectiveMode === 'mobile'
   // Consultation sur téléphone : prototype plein écran, pas le mockup desktop
   const isRealMobileView = !isDesktop && effectiveMode === 'desktop'
@@ -98,13 +100,9 @@ export function PrototypeLayout({
   const dragMovedRef = React.useRef(false)
 
   return (
-    <div className="min-h-dvh bg-primary text-surface">
-      <div
-        className={cn(
-          'z-50 h-8 border-b border-surface/10 bg-primary text-surface',
-          isRealMobileView ? 'relative' : 'fixed inset-x-0 top-0'
-        )}
-      >
+    <div className={cn('min-h-dvh', isRealMobileView ? 'bg-background text-text' : 'bg-primary text-surface')}>
+      {isRealMobileView ? null : (
+      <div className="fixed inset-x-0 top-0 z-50 h-8 border-b border-surface/10 bg-primary text-surface">
         <div className="mx-auto flex h-8 w-full max-w-7xl items-center justify-between px-4">
           <div className="flex min-w-0 items-center gap-2">
             <Link to="/" className="truncate text-xs text-surface/70">
@@ -115,6 +113,26 @@ export function PrototypeLayout({
           <div className="flex items-center gap-2">
             {isDesktop && (
               <div className="flex items-center gap-2">
+                <Link
+                  to="/design-system"
+                  aria-label="Design system"
+                  className={cn(
+                    'inline-flex h-8 w-8 items-center justify-center rounded-md bg-surface/10 text-surface/80 transition-colors hover:bg-surface/15 hover:text-surface',
+                    designSystemActive && 'bg-secondary text-surface'
+                  )}
+                >
+                  <SwatchBook className="h-4 w-4" />
+                </Link>
+                <Link
+                  to="/telephone"
+                  aria-label="Consulter sur téléphone"
+                  className={cn(
+                    'inline-flex h-8 w-8 items-center justify-center rounded-md bg-surface/10 text-surface/80 transition-colors hover:bg-surface/15 hover:text-surface',
+                    phoneActive && 'bg-secondary text-surface'
+                  )}
+                >
+                  <QrCode className="h-4 w-4" />
+                </Link>
                 <Link
                   to="/sitemap"
                   aria-label="Arborescence du site"
@@ -143,6 +161,7 @@ export function PrototypeLayout({
           </div>
         </div>
       </div>
+      )}
 
       <div className={isRealMobileView ? undefined : 'pt-8'}>
         {effectiveMode === 'mobile' ? (

@@ -7,13 +7,62 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { PROJECT_DISPLAY_NAME } from '@/config/project'
-import { typeScale } from '@/styles/typography'
+import { typography, typeScale } from '@/styles/typography'
+
+type ColorGroup = 'Fonds' | 'Textes' | 'Actions' | 'Repères' | 'Chrome prototype'
 
 type ColorVar = {
   name: string
   value: string
   hex: string | null
-  category: 'Principaux' | 'Neutres' | 'États' | 'Autres'
+  category: ColorGroup
+}
+
+const COLOR_GROUPS: ColorGroup[] = [
+  'Fonds',
+  'Textes',
+  'Actions',
+  'Repères',
+  'Chrome prototype',
+]
+
+const COLOR_GROUP: Record<string, ColorGroup> = {
+  '--color-background': 'Fonds',
+  '--color-background-warm': 'Fonds',
+  '--color-surface': 'Fonds',
+  '--color-surface-subtle': 'Fonds',
+  '--color-surface-emphasis': 'Fonds',
+  '--color-footer': 'Fonds',
+  '--color-collections': 'Fonds',
+  '--color-text': 'Textes',
+  '--color-text-secondary': 'Textes',
+  '--color-text-inverse': 'Textes',
+  '--color-text-brand': 'Textes',
+  '--color-action': 'Actions',
+  '--color-action-hover': 'Actions',
+  '--color-action-pressed': 'Actions',
+  '--color-action-content': 'Actions',
+  '--color-action-secondary-bg': 'Actions',
+  '--color-action-secondary': 'Actions',
+  '--color-selection': 'Actions',
+  '--color-selection-content': 'Actions',
+  '--color-focus': 'Actions',
+  '--color-icon': 'Repères',
+  '--color-border': 'Repères',
+  '--color-border-strong': 'Repères',
+  '--color-accent-sand': 'Repères',
+  '--color-accent-clay': 'Repères',
+  '--color-placeholder': 'Repères',
+  '--color-placeholder-soft': 'Repères',
+  '--color-media': 'Repères',
+  '--color-pagination': 'Repères',
+  '--color-primary': 'Chrome prototype',
+  '--color-secondary': 'Chrome prototype',
+  '--color-muted': 'Chrome prototype',
+  '--color-card-border': 'Chrome prototype',
+  '--color-danger': 'Chrome prototype',
+  '--color-success': 'Chrome prototype',
+  '--color-warning': 'Chrome prototype',
 }
 
 function rgbTripletToHex(value: string) {
@@ -37,28 +86,8 @@ function rgbTripletToHex(value: string) {
   )
 }
 
-function getCategory(name: string): ColorVar['category'] {
-  if (
-    name === '--color-primary' ||
-    name === '--color-secondary' ||
-    name === '--color-background'
-  )
-    return 'Principaux'
-  if (
-    name === '--color-muted' ||
-    name === '--color-surface' ||
-    name === '--color-border' ||
-    name === '--color-text' ||
-    name === '--color-card-border'
-  )
-    return 'Neutres'
-  if (
-    name === '--color-success' ||
-    name === '--color-danger' ||
-    name === '--color-warning'
-  )
-    return 'États'
-  return 'Autres'
+function getCategory(name: string): ColorGroup {
+  return COLOR_GROUP[name] ?? 'Repères'
 }
 
 function readCssVariablesFromRoot(): Record<string, string> {
@@ -100,7 +129,7 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section id={id} className="scroll-mt-20">
+    <section id={id} className="scroll-mt-32">
       <div className="flex items-end justify-between gap-4">
         <h2 className="text-lg font-semibold tracking-tight text-text">
           {title}
@@ -131,11 +160,12 @@ export function DesignSystem() {
   }, [])
 
   const colorGroups = React.useMemo(() => {
-    const groups: Record<string, ColorVar[]> = {
-      Principaux: [],
-      Neutres: [],
-      États: [],
-      Autres: [],
+    const groups: Record<ColorGroup, ColorVar[]> = {
+      Fonds: [],
+      Textes: [],
+      Actions: [],
+      Repères: [],
+      'Chrome prototype': [],
     }
     for (const c of colors) groups[c.category].push(c)
     return groups
@@ -148,13 +178,19 @@ export function DesignSystem() {
     { px: 16, tw: 'p-4' },
     { px: 24, tw: 'p-6' },
     { px: 32, tw: 'p-8' },
+    { px: 40, tw: 'p-10' },
     { px: 48, tw: 'p-12' },
-    { px: 64, tw: 'p-16' },
+  ] as const
+
+  const radii = [
+    { label: 'Contrôle', tw: 'rounded-control', px: 4 },
+    { label: 'Carte', tw: 'rounded-card', px: 12 },
+    { label: 'Pilule', tw: 'rounded-pill', px: 999 },
   ] as const
 
   return (
     <div className="min-h-dvh bg-background text-text">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
+      <header className="fixed inset-x-0 top-8 z-40 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
           <h1 className="text-sm font-semibold text-text">
             Design System — {PROJECT_DISPLAY_NAME}
@@ -173,6 +209,9 @@ export function DesignSystem() {
           <a className="hover:text-text" href="#typographie">
             Typographie
           </a>
+          <a className="hover:text-text" href="#rayons">
+            Rayons
+          </a>
           <a className="hover:text-text" href="#espacement">
             Espacement
           </a>
@@ -184,7 +223,7 @@ export function DesignSystem() {
         <div className="grid gap-14">
           <Section id="couleurs" title="COULEURS">
             <div className="grid gap-10">
-              {(['Principaux', 'Neutres', 'États', 'Autres'] as const).map(
+              {COLOR_GROUPS.map(
                 (group) =>
                   colorGroups[group].length ? (
                     <div key={group} className="grid gap-4">
@@ -222,6 +261,10 @@ export function DesignSystem() {
           </Section>
 
           <Section id="typographie" title="TYPOGRAPHIE">
+            <p className="mb-6 text-sm text-[rgb(var(--color-text-secondary))]">
+              Bricolage Grotesque pour l’interface, Source Serif 4 pour la lecture.
+              L’interligne 1.2 fige l’interligne auto des titres 40 et 34 px.
+            </p>
             <div className="grid gap-4">
               {typeScale.map((t) => (
                 <div
@@ -229,13 +272,27 @@ export function DesignSystem() {
                   className="flex items-baseline justify-between gap-6 border-b border-border pb-4"
                 >
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-text/70">
+                    <p className="text-xs font-semibold text-[rgb(var(--color-text-secondary))]">
                       {t.label}
                     </p>
-                    <p className={t.className}>Aa — Exemple de texte</p>
+                    <p className={t.className}>{t.sample}</p>
                   </div>
-                  <p className="shrink-0 text-xs text-text/70">
-                    {t.sizePx}px · {t.weight}
+                  <p className="shrink-0 text-xs text-[rgb(var(--color-text-secondary))]">
+                    {t.spec}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          <Section id="rayons" title="RAYONS">
+            <div className="flex flex-wrap gap-6">
+              {radii.map((r) => (
+                <div key={r.label} className="grid gap-2">
+                  <div className={`h-16 w-28 border border-[rgb(var(--color-border-strong))] bg-[rgb(var(--color-accent-sand))] ${r.tw}`} />
+                  <p className="text-xs font-semibold text-text">{r.label}</p>
+                  <p className="text-xs text-[rgb(var(--color-text-secondary))]">
+                    {r.px}px · {r.tw}
                   </p>
                 </div>
               ))}
@@ -269,6 +326,17 @@ export function DesignSystem() {
                   <h3 className="text-sm font-semibold">Boutons</h3>
                 </CardHeader>
                 <CardContent>
+                  <div className="mb-4 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      className={`${typography.uiAction} inline-flex h-8 items-center rounded-pill bg-action px-4 text-[rgb(var(--color-action-content))] hover:bg-[rgb(var(--color-action-hover))]`}
+                    >
+                      Découvrir
+                    </button>
+                    <p className="text-xs text-[rgb(var(--color-text-secondary))]">
+                      Bouton produit · bg-action
+                    </p>
+                  </div>
                   <div className="flex flex-wrap gap-3">
                     <Button variant="default">Default</Button>
                     <Button variant="outline">Outline</Button>

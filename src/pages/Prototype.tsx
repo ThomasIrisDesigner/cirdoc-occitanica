@@ -3,12 +3,14 @@ import { ArrowLeft, ChevronDown, MapPin, Search, X } from 'lucide-react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { EditorialArticle } from '@/components/features/EditorialArticle'
+import { EspaceCultureView } from '@/components/features/EspaceCultureView'
+import { HomeView } from '@/components/features/HomeView'
 import { GascogneMap } from '@/components/features/GascogneMap'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { TERRITOIRE_SOUS_TITRES } from '@/data/territoires'
-import { getEditorialArticle, articlePath, EDITORIAL_SPECIMEN, type EditorialArticleContent } from '@/data/editorialArticle'
+import { getEditorialArticle, articlePath, filtrePath, gabaritPath, EDITORIAL_SPECIMEN, type EditorialArticleContent } from '@/data/editorialArticle'
 import {
   articleFromPath,
   pathForScreen,
@@ -26,11 +28,25 @@ const espaces: Array<{
   accroche: string
   colorVar: string
 }> = [
-  { key: 'langue',    label: 'Langue',            accroche: 'Mots, paroles, littérature',  colorVar: '--occ-espace-langue' },
-  { key: 'musique',   label: 'Musique',            accroche: 'Sons, rythmes, traditions',   colorVar: '--occ-espace-musique' },
-  { key: 'fetes',     label: 'Fêtes & Traditions', accroche: 'Rites, célébrations, PCI',    colorVar: '--occ-espace-fetes' },
-  { key: 'portraits', label: 'Portraits',          accroche: 'Figures, histoires, visages', colorVar: '--occ-espace-portraits' },
-  { key: 'scene',     label: 'La Scène occitane',  accroche: 'Artistes, scènes, créations', colorVar: '--occ-espace-scene' },
+  { key: 'fetes',     label: 'Culture vivante',   accroche: 'Des pratiques qui rassemblent',    colorVar: '--occ-espace-fetes' },
+  { key: 'langue',    label: 'Littérature',       accroche: 'Textes et regards critiques',      colorVar: '--occ-espace-langue' },
+  { key: 'portraits', label: "Figures d'oc",      accroche: 'Parcours, portraits, engagements', colorVar: '--occ-espace-portraits' },
+  { key: 'musique',   label: 'Musiques',          accroche: 'Du son sous toutes ses formes',    colorVar: '--occ-espace-musique' },
+  { key: 'scene',     label: 'La Scène occitane', accroche: 'Artistes, scènes, créations',      colorVar: '--occ-espace-scene' },
+]
+
+// Menu de la home : 6 espaces. Les deux derniers n'ont pas encore de page.
+const MENU_ESPACES: Array<{
+  label: string
+  colorVar: string
+  key?: EspaceKey
+}> = [
+  { key: 'fetes',     label: 'Culture vivante', colorVar: '--occ-espace-fetes' },
+  { key: 'langue',    label: 'Littérature',     colorVar: '--occ-espace-langue' },
+  { key: 'portraits', label: "Figures d'oc",    colorVar: '--occ-espace-portraits' },
+  { key: 'musique',   label: 'Musiques',        colorVar: '--occ-espace-musique' },
+  { label: 'Histoires de…', colorVar: '--occ-gray' },
+  { label: 'Plein cadre',   colorVar: '--occ-gray' },
 ]
 
 type EspaceConfig = {
@@ -99,7 +115,7 @@ const ESPACES_CONFIG: Record<EspaceKey, EspaceConfig> = {
     hasAgenda: false,
     agendaItems: [],
     hasAZ: true,
-    voirAussi: ['scene', 'musique'],
+    voirAussi: ['fetes', 'musique'],
   },
   scene: {
     heroTag: 'Article · Lo Mag',
@@ -207,11 +223,13 @@ const TERRITOIRE_PILLS: Array<{ key: TerritoireKey | null; label: string }> = [
 ]
 
 const COLLECTIONS_DATA = {
-  thematiques: espaces.map((e, i) => ({
-    label: e.label,
-    colorVar: e.colorVar,
-    count: ['3 241 docs', '1 876 docs', '987 docs', '2 134 docs', '612 docs'][i],
-  })),
+  thematiques: [
+    { key: 'langue' as EspaceKey,    label: 'Langue',            colorVar: '--occ-espace-langue',    count: '3 241 docs' },
+    { key: 'musique' as EspaceKey,   label: 'Musique',           colorVar: '--occ-espace-musique',   count: '1 876 docs' },
+    { key: 'fetes' as EspaceKey,     label: 'Fêtes & Traditions', colorVar: '--occ-espace-fetes',    count: '987 docs' },
+    { key: 'portraits' as EspaceKey, label: 'Portraits',         colorVar: '--occ-espace-portraits', count: '2 134 docs' },
+    { key: 'scene' as EspaceKey,     label: 'La Scène occitane', colorVar: '--occ-espace-scene',     count: '612 docs' },
+  ],
   territoires: [
     { label: 'Gascogne',  count: '1 243 docs' },
     { label: 'Languedoc', count: '2 476 docs' },
@@ -271,24 +289,6 @@ function PlaceholderImage({ className }: { className?: string }) {
         Visuel
       </span>
     </div>
-  )
-}
-
-function Chip({
-  label,
-  onClick,
-}: {
-  label: string
-  onClick?: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="inline-flex h-8 flex-none items-center whitespace-nowrap rounded-full border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))] px-4 text-[12px] font-medium text-[rgb(var(--occ-dark))] transition-colors hover:bg-[rgb(var(--occ-light))]"
-    >
-      {label}
-    </button>
   )
 }
 
@@ -454,14 +454,74 @@ function MobileHeader({
 
 // ── HorizontalScroller ────────────────────────────────────────────────────────
 
+/** Position de la vignette dans le repère du scroll, indépendante du scale du mockup. */
+function itemScrollLeft(scroller: HTMLElement, item: HTMLElement) {
+  const visualWidth = scroller.getBoundingClientRect().width
+  const scale = scroller.offsetWidth && visualWidth ? visualWidth / scroller.offsetWidth : 1
+  const delta = item.getBoundingClientRect().left - scroller.getBoundingClientRect().left
+  return scroller.scrollLeft + delta / scale
+}
+
+/** Nombre de vignettes qui tiennent entièrement dans la largeur visible. */
+function visiblePageSize(scroller: HTMLElement, items: HTMLElement[], startIndex: number) {
+  const gap = Number.parseFloat(getComputedStyle(scroller).columnGap) || 0
+  const padLeft = Number.parseFloat(getComputedStyle(scroller).paddingLeft) || 0
+  const viewRight = scroller.clientWidth
+  let used = padLeft
+  let count = 0
+  for (let i = startIndex; i < items.length; i++) {
+    const right = used + items[i].offsetWidth
+    if (right > viewRight + 1) break
+    used = right + gap
+    count += 1
+  }
+  return Math.max(1, count)
+}
+
+function firstFullyVisibleIndex(scroller: HTMLElement, items: HTMLElement[]) {
+  const viewLeft = scroller.scrollLeft
+  const viewRight = viewLeft + scroller.clientWidth
+  for (let i = 0; i < items.length; i++) {
+    const start = itemScrollLeft(scroller, items[i])
+    const end = start + items[i].offsetWidth
+    if (start >= viewLeft - 2 && end <= viewRight + 2) return i
+  }
+  return 0
+}
+
+function scrollSliderPage(scroller: HTMLElement, direction: -1 | 1) {
+  const items = Array.from(scroller.children).filter(
+    (node): node is HTMLElement => node instanceof HTMLElement,
+  )
+  if (items.length === 0) return
+  const page = visiblePageSize(scroller, items, 0)
+  const pageCount = Math.max(1, Math.ceil(items.length / page))
+  const max = Math.max(0, scroller.scrollWidth - scroller.clientWidth)
+  if (pageCount <= 1 || max <= 1) return
+  const atEnd = scroller.scrollLeft >= max - 1
+  const current = firstFullyVisibleIndex(scroller, items)
+  const pageIndex = atEnd ? pageCount - 1 : Math.floor(current / page)
+  let nextPage = pageIndex + direction
+  if (nextPage < 0) nextPage = pageCount - 1
+  if (nextPage >= pageCount) nextPage = 0
+  const nextIndex = Math.min(nextPage * page, items.length - 1)
+  const padLeft = Number.parseFloat(getComputedStyle(scroller).paddingLeft) || 0
+  const align = itemScrollLeft(scroller, items[nextIndex]) - padLeft
+  const left = nextPage === 0 ? 0 : nextPage === pageCount - 1 ? max : Math.min(Math.max(0, align), max)
+  scroller.scrollTo({ left, behavior: 'smooth' })
+}
+
 function HorizontalScroller({
   children,
   variant = 'default',
+  scrollerRef,
 }: {
   children: React.ReactNode
   variant?: 'default' | 'compact'
+  scrollerRef?: React.RefObject<HTMLDivElement | null>
 }) {
-  const ref = React.useRef<HTMLDivElement | null>(null)
+  const localRef = React.useRef<HTMLDivElement | null>(null)
+  const ref = scrollerRef ?? localRef
   const isDownRef = React.useRef(false)
   const startXRef = React.useRef(0)
   const startScrollLeftRef = React.useRef(0)
@@ -547,18 +607,34 @@ function CardSkeletonLines() {
 
 // ── SliderArrows — flèches décoratives de navigation ──────────────────────────
 
-function SliderArrows() {
+function SliderArrows({ scrollerRef }: { scrollerRef: React.RefObject<HTMLDivElement | null> }) {
+  const arrowClass =
+    'grid h-6 w-6 place-items-center rounded-full border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))] text-[11px] text-[rgb(var(--occ-dark))]'
+
   return (
     <div className="flex flex-none gap-1">
-      {['←', '→'].map((a) => (
-        <div
-          key={a}
-          aria-hidden
-          className="grid h-6 w-6 place-items-center rounded-full border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))] text-[11px] text-[rgb(var(--occ-dark))]"
-        >
-          {a}
-        </div>
-      ))}
+      <button
+        type="button"
+        aria-label="Vignettes précédentes"
+        onClick={() => {
+          const el = scrollerRef.current
+          if (el) scrollSliderPage(el, -1)
+        }}
+        className={arrowClass}
+      >
+        ←
+      </button>
+      <button
+        type="button"
+        aria-label="Vignettes suivantes"
+        onClick={() => {
+          const el = scrollerRef.current
+          if (el) scrollSliderPage(el, 1)
+        }}
+        className={arrowClass}
+      >
+        →
+      </button>
     </div>
   )
 }
@@ -580,16 +656,20 @@ function SliderSection({
   className?: string
   children: React.ReactNode
 }) {
+  const scrollerRef = React.useRef<HTMLDivElement | null>(null)
+
   return (
     <>
       {withDivider && <Divider />}
       <section className={['px-5 pt-6', className].filter(Boolean).join(' ')}>
         <header className="mb-3 flex items-center justify-between gap-3">
           <SectionLabel>{title}</SectionLabel>
-          {withArrows && <SliderArrows />}
+          {withArrows && <SliderArrows scrollerRef={scrollerRef} />}
         </header>
         <div className="-mx-5">
-          <HorizontalScroller variant={scrollerVariant}>{children}</HorizontalScroller>
+          <HorizontalScroller scrollerRef={scrollerRef} variant={scrollerVariant}>
+            {children}
+          </HorizontalScroller>
         </div>
       </section>
     </>
@@ -643,19 +723,29 @@ function SectionSlider({
 
 // ── AvatarSlider — slider de personnalités avec avatar rond ───────────────────
 
-function AvatarSlider({ title, withDivider = true }: { title: string; withDivider?: boolean }) {
+function AvatarSlider({
+  title,
+  withDivider = true,
+  onCardClick,
+}: {
+  title: string
+  withDivider?: boolean
+  onCardClick?: () => void
+}) {
   return (
     <SliderSection title={title} withDivider={withDivider}>
       {Array.from({ length: 4 }).map((_, idx) => (
-        <div
+        <button
           // eslint-disable-next-line react/no-array-index-key
           key={idx}
+          type="button"
+          onClick={onCardClick}
           className="flex w-[72px] flex-none snap-start flex-col items-center gap-2"
         >
           <div className="h-12 w-12 rounded-full border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-light))]" />
           <div className="h-2 w-full rounded bg-[rgb(var(--occ-med))]" />
           <div className="h-2 w-3/4 rounded bg-[rgb(var(--occ-light))]" />
-        </div>
+        </button>
       ))}
     </SliderSection>
   )
@@ -757,390 +847,20 @@ function CollectionsCtaBlock({
 
 // ── HeroCarousel ──────────────────────────────────────────────────────────────
 
-function HeroCarousel({
-  title,
-  onPrimaryAction,
-  primaryLabel,
-}: {
-  title: string
-  primaryLabel: string
-  onPrimaryAction: () => void
-}) {
-  const baseSlides = React.useMemo(() => [0, 1, 2] as const, [])
-  const slides = React.useMemo(() => [2, 0, 1, 2, 0] as const, [])
-  const scrollerRef = React.useRef<HTMLDivElement | null>(null)
-  const slideRefs = React.useRef<Array<HTMLDivElement | null>>([])
-  const rafRef = React.useRef<number | null>(null)
-  const [active, setActive] = React.useState(0)
-  const [styles, setStyles] = React.useState<Array<{ scale: number; opacity: number }>>(
-    () => slides.map(() => ({ scale: 1, opacity: 1 })),
-  )
-  const isDownRef = React.useRef(false)
-  const startXRef = React.useRef(0)
-  const startScrollLeftRef = React.useRef(0)
-  const didDragRef = React.useRef(false)
-  const ignoreScrollRef = React.useRef(false)
-  const [isDragging, setIsDragging] = React.useState(false)
-  const [snapEnabled, setSnapEnabled] = React.useState(true)
-  const centerIndex = React.useRef(1)
-
-  const compute = React.useCallback(() => {
-    const scroller = scrollerRef.current
-    if (!scroller) return
-    const rect = scroller.getBoundingClientRect()
-    const centerX = rect.left + rect.width / 2
-    let bestIdx = 0
-    let bestDist = Number.POSITIVE_INFINITY
-    const next = slides.map((_, idx) => {
-      const el = slideRefs.current[idx]
-      if (!el) return { scale: 0.94, opacity: 0.85 }
-      const r = el.getBoundingClientRect()
-      const slideCenter = r.left + r.width / 2
-      const dist = Math.abs(centerX - slideCenter)
-      if (dist < bestDist) { bestDist = dist; bestIdx = idx }
-      const t = Math.min(1, dist / (rect.width * 0.85))
-      const eased = Math.pow(t, 1.35)
-      return { scale: 1 - 0.06 * eased, opacity: 1 - 0.22 * eased }
-    })
-    centerIndex.current = bestIdx
-    setActive(slides[bestIdx] ?? 0)
-    setStyles(next)
-  }, [slides])
-
-  const centerSlideAt = React.useCallback((visualIdx: number, smooth = false) => {
-    const scroller = scrollerRef.current
-    const slide = slideRefs.current[visualIdx]
-    if (!scroller || !slide) return
-    const left = slide.offsetLeft - (scroller.clientWidth - slide.clientWidth) / 2
-    scroller.scrollTo({ left, behavior: smooth ? 'smooth' : 'auto' })
-  }, [])
-
-  React.useEffect(() => {
-    const scroller = scrollerRef.current
-    if (scroller) {
-      requestAnimationFrame(() => { centerSlideAt(1, false); compute() })
-    } else {
-      compute()
-    }
-    function onResize() { compute() }
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [centerSlideAt, compute])
-
-  React.useEffect(() => {
-    const scroller = scrollerRef.current
-    if (!scroller) return
-    function onScroll() {
-      if (ignoreScrollRef.current) return
-      if (rafRef.current) return
-      rafRef.current = window.requestAnimationFrame(() => { rafRef.current = null; compute() })
-    }
-    scroller.addEventListener('scroll', onScroll, { passive: true })
-    return () => scroller.removeEventListener('scroll', onScroll)
-  }, [compute])
-
-  const scrollToIndex = React.useCallback((baseIdx: number) => {
-    const scroller = scrollerRef.current
-    if (!scroller) return
-    const current = centerIndex.current
-    const candidates = slides.map((v, i) => ({ v, i })).filter((x) => x.v === baseIdx).map((x) => x.i)
-    const best = candidates.sort((a, b) => Math.abs(a - current) - Math.abs(b - current))[0]
-    const slide = slideRefs.current[best]
-    if (!scroller || !slide) return
-    const left = slide.offsetLeft - (scroller.clientWidth - slide.clientWidth) / 2
-    scroller.scrollTo({ left, behavior: 'smooth' })
-  }, [slides])
-
-  const normalizeLoop = React.useCallback(() => {
-    const idx = centerIndex.current
-    if (idx === 0) {
-      ignoreScrollRef.current = true
-      centerSlideAt(3, false)
-      window.setTimeout(() => { ignoreScrollRef.current = false; compute() }, 0)
-    } else if (idx === slides.length - 1) {
-      ignoreScrollRef.current = true
-      centerSlideAt(1, false)
-      window.setTimeout(() => { ignoreScrollRef.current = false; compute() }, 0)
-    }
-  }, [centerSlideAt, compute, slides.length])
-
-  const snapToNearest = React.useCallback(() => {
-    centerSlideAt(centerIndex.current, true)
-  }, [centerSlideAt])
-
-  const afterDrag = React.useCallback(() => {
-    snapToNearest()
-    window.setTimeout(() => { setSnapEnabled(true); normalizeLoop() }, 260)
-  }, [snapToNearest, normalizeLoop])
-
-  return (
-    <div className="px-5 pt-6">
-      <h1 className="text-[32px] font-extrabold tracking-tight text-[rgb(var(--occ-dark))]">
-        {title}
-      </h1>
-      <div
-        ref={scrollerRef}
-        data-h-scroller="true"
-        className={[
-          'scrollbar-hidden -mx-5 mt-4 flex gap-4 overflow-x-auto px-5 pb-2 overscroll-x-contain md:cursor-grab',
-          snapEnabled ? 'snap-x snap-mandatory' : 'snap-none',
-          isDragging ? 'md:cursor-grabbing' : '',
-        ].join(' ')}
-        style={{ scrollPaddingLeft: 20, scrollPaddingRight: 20 }}
-        onPointerDown={(e) => {
-          const el = scrollerRef.current
-          if (!el) return
-          // Laisse le navigateur gérer nativement le toucher
-          if (e.pointerType !== 'mouse') return
-          if (e.button !== 0) return
-          isDownRef.current = true
-          didDragRef.current = false
-          setSnapEnabled(false)
-          setIsDragging(false)
-          startXRef.current = e.clientX
-          startScrollLeftRef.current = el.scrollLeft
-        }}
-        onPointerMove={(e) => {
-          const el = scrollerRef.current
-          if (!el || !isDownRef.current) return
-          if (e.pointerType !== 'mouse') return
-          const dx = e.clientX - startXRef.current
-          if (Math.abs(dx) > 5) {
-            didDragRef.current = true
-            setIsDragging(true)
-          }
-          if (didDragRef.current) {
-            el.scrollLeft = startScrollLeftRef.current - dx
-          }
-        }}
-        onPointerUp={() => { isDownRef.current = false; setIsDragging(false); afterDrag() }}
-        onPointerLeave={() => { if (!isDownRef.current) return; isDownRef.current = false; setIsDragging(false); afterDrag() }}
-        onPointerCancel={() => { isDownRef.current = false; setIsDragging(false); afterDrag() }}
-        onClickCapture={(e) => {
-          if (didDragRef.current) {
-            e.stopPropagation()
-            e.preventDefault()
-            didDragRef.current = false
-          }
-        }}
-        onDragStart={(e) => e.preventDefault()}
-      >
-        {slides.map((i, idx) => (
-          <div
-            // eslint-disable-next-line react/no-array-index-key
-            key={`${i}-${idx}`}
-            ref={(el) => { slideRefs.current[idx] = el }}
-            className="flex-none snap-center"
-            style={{ width: 300 }}
-          >
-            <div
-              className="relative origin-center overflow-hidden rounded-[22px] bg-[rgb(var(--occ-light))] shadow-[0_18px_48px_rgba(0,0,0,0.18)]"
-              style={{
-                transform: `scale(${styles[idx]?.scale ?? 1})`,
-                opacity: styles[idx]?.opacity ?? 1,
-                transition: isDragging ? 'none' : 'transform 220ms ease, opacity 220ms ease',
-                willChange: 'transform, opacity',
-              }}
-            >
-              <PlaceholderImage className="h-[344px] w-full" />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/15 to-black/75" />
-              <div className="absolute inset-x-0 bottom-0 px-5 pb-6 text-center text-white">
-                <div className="mx-auto max-w-[260px] space-y-3">
-                  <div className="space-y-2">
-                    <div className="h-3 w-full rounded bg-white/90" />
-                    <div className="h-3 w-10/12 rounded bg-white/80" />
-                  </div>
-                  <div className="mx-auto h-2 w-7/12 rounded bg-white/50" />
-                  <button
-                    type="button"
-                    onClick={onPrimaryAction}
-                    className="mx-auto inline-flex h-12 items-center justify-center rounded-full bg-white px-8 text-[14px] font-semibold text-[rgb(var(--occ-dark))]"
-                  >
-                    {primaryLabel}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-4 flex justify-center gap-2">
-        {baseSlides.map((i) => (
-          <button
-            key={i}
-            type="button"
-            aria-label={`Aller à la slide ${i + 1}`}
-            onClick={() => scrollToIndex(i)}
-            className="rounded-full"
-            style={{
-              width: i === active ? 22 : 8,
-              height: 8,
-              background: i === active ? 'rgb(var(--occ-dark))' : 'rgb(var(--occ-med))',
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  )
+function espaceFromSection(title: string): EspaceKey | undefined {
+  if (title === 'La Scène') return 'scene'
+  if (title === 'Personnalités') return 'portraits'
+  return espaces.find((item) => item.label === title)?.key
 }
 
-// ── HomeScreen ────────────────────────────────────────────────────────────────
-
-function HomeScreen({ go }: { go: (screen: Screen) => void }) {
-  const musique = espaces.find((e) => e.key === 'musique')!
-
-  return (
-    <div className="min-h-[calc(100dvh-32px)] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))]">
-      <MobileHeader onMenu={() => go('menu')} />
-
-      <HeroCarousel
-        title="À la Une"
-        primaryLabel="Découvrir"
-        onPrimaryAction={() => go('article')}
-      />
-
-      <Divider />
-
-      {/* Espaces */}
-      <SliderSection title="Les espaces à découvrir">
-        {espaces.map((e) => (
-          <button
-            key={e.key}
-            type="button"
-            onClick={() => go(`espace-${e.key}`)}
-            className="w-[168px] flex-none snap-start text-left"
-          >
-            <div className="relative h-[132px] overflow-hidden rounded-xl">
-              <PlaceholderImage className="h-[132px] w-full" />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `linear-gradient(transparent 35%, ${rgbFromVar(e.colorVar)})`,
-                  opacity: 0.92,
-                }}
-              />
-              <div className="absolute inset-x-0 bottom-0 p-3">
-                <div className="text-[14px] font-bold text-white">{e.label}</div>
-                <div className="mt-1 text-[11px] leading-snug text-white/75">{e.accroche}</div>
-              </div>
-            </div>
-          </button>
-        ))}
-      </SliderSection>
-
-      {/* Territoires */}
-      <div className="mt-6 border-y border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-light))] pb-3">
-        <SliderSection
-          title="Territoires"
-          scrollerVariant="compact"
-          className="!pt-4"
-        >
-          {TERRITOIRE_PILLS.map((t) => (
-            <div key={t.label} className="snap-start">
-              <Chip
-                label={t.label}
-                onClick={t.key ? () => go(`territoire-${t.key!}`) : undefined}
-              />
-            </div>
-          ))}
-        </SliderSection>
-      </div>
-
-      <Divider />
-
-      {/* Cultura viva */}
-      <section className="px-5 pt-6">
-        <SectionLabel>Cultura viva !</SectionLabel>
-        <Card className="mt-3 overflow-hidden border-[rgb(var(--occ-border))]">
-          <PlaceholderImage className="h-24 w-full" />
-          <div className="p-3">
-            <div
-              className="text-[10px] font-bold uppercase tracking-[0.1em]"
-              style={{ color: rgbFromVar(musique.colorVar) }}
-            >
-              La Scène · Lo Mag
-            </div>
-            <div className="mt-2 space-y-1.5">
-              <div className="h-2 w-11/12 rounded bg-[rgb(var(--occ-med))]" />
-              <div className="h-2 w-8/12 rounded bg-[rgb(var(--occ-med))]" />
-              <div className="h-2 w-6/12 rounded bg-[rgb(var(--occ-light))]" />
-            </div>
-          </div>
-        </Card>
-
-        <div className="mt-5 space-y-5">
-          {[
-            { tag: 'Fêtes', colorVar: '--occ-espace-fetes' },
-            { tag: 'Musique', colorVar: '--occ-espace-musique' },
-          ].map((a) => (
-            <button
-              key={a.tag}
-              type="button"
-              onClick={() => go('article')}
-              className="flex w-full gap-3 border-t border-[rgb(var(--occ-border))] pt-3 text-left"
-            >
-              <div className="h-12 w-12 flex-none overflow-hidden rounded-md bg-[rgb(var(--occ-light))]">
-                <PlaceholderImage className="h-12 w-12" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div
-                  className="text-[10px] font-bold uppercase tracking-[0.1em]"
-                  style={{ color: rgbFromVar(a.colorVar) }}
-                >
-                  {a.tag}
-                </div>
-                <div className="mt-2 space-y-1.5">
-                  <div className="h-2 w-11/12 rounded bg-[rgb(var(--occ-med))]" />
-                  <div className="h-2 w-8/12 rounded bg-[rgb(var(--occ-light))]" />
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* Bloc Collections */}
-      <section className="px-5 pt-6 pb-8">
-        <button
-          type="button"
-          onClick={() => go('collections')}
-          className="relative w-full overflow-hidden rounded-xl border border-[rgb(var(--occ-border))]"
-        >
-          <PlaceholderImage className="h-28 w-full" />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-            <span className="rounded-full bg-white px-6 py-2 text-[13px] font-bold text-[rgb(var(--occ-dark))]">
-              Explorer les collections
-            </span>
-          </div>
-        </button>
-      </section>
-
-      {/* Footer */}
-      <div className="border-t border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-light))] px-5 py-8">
-        <div className="text-[12px] font-extrabold tracking-[0.08em] text-[rgb(var(--occ-brand))]">
-          OCCITANICA
-        </div>
-        <div className="mt-1 text-[12px] text-[rgb(var(--occ-gray))]">
-          Institut occitan de cultura — CIRDOC
-        </div>
-        <div className="mt-4 grid gap-2 text-[12px] text-[rgb(var(--occ-gray))]">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.1em]">Espaces</div>
-          <div className="flex flex-wrap gap-2">
-            {espaces.map((e) => (
-              <button
-                key={e.key}
-                type="button"
-                onClick={() => go(`espace-${e.key}`)}
-                className="hover:underline"
-              >
-                {e.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+function HomeScreen({
+  go,
+  onOpenGabarit,
+}: {
+  go: (screen: Screen) => void
+  onOpenGabarit: (espace: EspaceKey) => void
+}) {
+  return <HomeView go={go} onOpenGabarit={onOpenGabarit} />
 }
 
 // ── MenuScreen ────────────────────────────────────────────────────────────────
@@ -1191,19 +911,27 @@ function MenuScreen({
             </button>
             {menuEspacesOpen ? (
               <div className="divide-y divide-[rgb(var(--occ-border))]">
-                {espaces.map((e) => (
+                {MENU_ESPACES.map((e) => (
                   <button
-                    key={e.key}
+                    key={e.label}
                     type="button"
-                    onClick={() => go(`espace-${e.key}`)}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[rgb(var(--occ-light))]"
+                    onClick={() => {
+                      const key = e.key
+                      if (key) go(`espace-${key}`)
+                    }}
+                    className={[
+                      'flex w-full items-center gap-3 px-4 py-3 text-left',
+                      e.key ? 'hover:bg-[rgb(var(--occ-light))]' : '',
+                    ].join(' ')}
                   >
                     <span
                       className="h-2 w-2 rounded-full"
                       style={{ background: rgbFromVar(e.colorVar) }}
                     />
                     <span className="text-[14px] font-semibold">{e.label}</span>
-                    <span className="ml-auto text-[14px] text-[rgb(var(--occ-med))]">›</span>
+                    {e.key ? (
+                      <span className="ml-auto text-[14px] text-[rgb(var(--occ-med))]">›</span>
+                    ) : null}
                   </button>
                 ))}
               </div>
@@ -1275,11 +1003,24 @@ function MenuScreen({
 function FilterTags({
   tags,
   activeColorVar,
+  activeLabel,
+  onActiveChange,
 }: {
   tags: string[]
   activeColorVar: string
+  activeLabel?: string | null
+  onActiveChange?: (label: string) => void
 }) {
-  const [activeTab, setActiveTab] = React.useState(0)
+  const indexFromLabel = (label?: string | null) => {
+    if (!label) return 0
+    const index = tags.findIndex((tag) => tag === label)
+    return index >= 0 ? index : 0
+  }
+  const [activeTab, setActiveTab] = React.useState(() => indexFromLabel(activeLabel))
+
+  React.useEffect(() => {
+    setActiveTab(indexFromLabel(activeLabel))
+  }, [activeLabel, tags])
 
   return (
     <div className="border-b border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))]">
@@ -1290,7 +1031,10 @@ function FilterTags({
             <button
               key={t}
               type="button"
-              onClick={() => setActiveTab(idx)}
+              onClick={() => {
+                setActiveTab(idx)
+                onActiveChange?.(t)
+              }}
               className={[
                 'h-8 flex-none whitespace-nowrap rounded-full px-4 text-[12px] font-semibold transition-colors',
                 active
@@ -1313,12 +1057,23 @@ function FilterTags({
 function EspaceScreen({
   espaceKey,
   go,
+  filtre,
+  onOpenGabarit,
 }: {
   espaceKey: EspaceKey
   go: (screen: Screen) => void
+  filtre?: string | null
+  onOpenGabarit: (espace: EspaceKey, sousEspace?: string) => void
 }) {
   const espaceInfo = espaces.find((e) => e.key === espaceKey)!
   const config = ESPACES_CONFIG[espaceKey]
+  const [activeFiltre, setActiveFiltre] = React.useState(() =>
+    filtre && config.tabs.includes(filtre) ? filtre : config.tabs[0],
+  )
+
+  if (espaceKey === 'fetes') {
+    return <EspaceCultureView go={go} onOpenGabarit={onOpenGabarit} />
+  }
 
   return (
     <div className="min-h-[calc(100dvh-32px)] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))]">
@@ -1340,12 +1095,22 @@ function EspaceScreen({
         </div>
       </div>
 
-      <FilterTags tags={config.tabs} activeColorVar={espaceInfo.colorVar} />
+      <FilterTags
+        tags={config.tabs}
+        activeColorVar={espaceInfo.colorVar}
+        activeLabel={filtre}
+        onActiveChange={setActiveFiltre}
+      />
 
       {/* À la une */}
       <section className="px-5 pt-6">
         <SectionLabel>À la une</SectionLabel>
-        <Card className="mt-3 overflow-hidden border-[rgb(var(--occ-border))]">
+        <button
+          type="button"
+          onClick={() => onOpenGabarit(espaceKey, activeFiltre)}
+          className="mt-3 block w-full text-left"
+        >
+        <Card className="overflow-hidden border-[rgb(var(--occ-border))]">
           <div className="relative">
             <PlaceholderImage className="h-24 w-full" />
             <div className="absolute left-2 top-2">
@@ -1366,6 +1131,7 @@ function EspaceScreen({
             <div className="mt-2 h-2 w-6/12 rounded bg-[rgb(var(--occ-light))]" />
           </div>
         </Card>
+        </button>
       </section>
 
       {/* Sections thématiques */}
@@ -1375,7 +1141,7 @@ function EspaceScreen({
           title={s.title}
           badge={s.badge}
           badgeColorVar={s.badgeColorVar}
-          onCardClick={() => go('article')}
+          onCardClick={() => onOpenGabarit(espaceKey, activeFiltre)}
         />
       ))}
 
@@ -1445,9 +1211,13 @@ function EspaceScreen({
 function TerritoireScreen({
   terKey,
   go,
+  filtre,
+  onOpenGabarit,
 }: {
   terKey: TerritoireKey
   go: (screen: Screen) => void
+  filtre?: string | null
+  onOpenGabarit: (espace: EspaceKey) => void
 }) {
   const config = TERRITOIRES_CONFIG[terKey]
   const [mapOpen, setMapOpen] = React.useState(false)
@@ -1506,23 +1276,33 @@ function TerritoireScreen({
         </div>
       </div>
 
-      <FilterTags tags={TERRITOIRE_LOCALISATIONS[terKey]} activeColorVar="--occ-brand" />
+      <FilterTags
+        tags={TERRITOIRE_LOCALISATIONS[terKey]}
+        activeColorVar="--occ-brand"
+        activeLabel={filtre}
+      />
 
       {/* Sections thématiques */}
-      {config.sections.map((s, index) =>
-        s.avatars ? (
-          <AvatarSlider key={s.title} title={s.title} withDivider={index > 0} />
+      {config.sections.map((s, index) => {
+        const sectionEspace = espaceFromSection(s.title)
+        return s.avatars ? (
+          <AvatarSlider
+            key={s.title}
+            title={s.title}
+            withDivider={index > 0}
+            onCardClick={sectionEspace ? () => onOpenGabarit(sectionEspace) : undefined}
+          />
         ) : (
           <SectionSlider
             key={s.title}
             title={s.title}
             badge={s.badge}
             badgeColorVar={s.badgeColorVar}
-            onCardClick={() => go('article')}
+            onCardClick={sectionEspace ? () => onOpenGabarit(sectionEspace) : undefined}
             withDivider={index > 0}
           />
-        ),
-      )}
+        )
+      })}
 
       {/* Module Agenda */}
       {config.hasAgenda && (
@@ -1592,9 +1372,7 @@ function CollectionsScreen({ go }: { go: (screen: Screen) => void }) {
           <button
             key={c.label}
             type="button"
-            onClick={() =>
-              go(`espace-${espaces.find((e) => e.label === c.label)?.key ?? 'musique'}`)
-            }
+            onClick={() => go(`espace-${c.key}`)}
             className="w-[100px] flex-none snap-start text-left"
           >
             <div className="overflow-hidden rounded-lg border border-[rgb(var(--occ-border))]">
@@ -1687,21 +1465,50 @@ function CollectionsScreen({ go }: { go: (screen: Screen) => void }) {
 
 function ArticleScreen({
   article,
+  filtre,
+  territoire,
   go,
   goBack,
   onPath,
 }: {
   article: EditorialArticleContent
+  filtre?: string | null
+  territoire?: string | null
   go: (screen: Screen) => void
   goBack: () => void
   onPath: (path: string) => void
 }) {
   const espace = espaces.find((item) => item.key === article.espace)
-  const crumbs = [
-    { label: 'Accueil', to: '/' },
-    ...(espace ? [{ label: espace.label, to: `/espaces/${espace.key}` }] : []),
-    { label: article.title },
-  ]
+  const fromGabarit = article.slug === EDITORIAL_SPECIMEN.slug
+  const tabs = espace ? ESPACES_CONFIG[espace.key].tabs : []
+  const sousEspace = fromGabarit
+    ? filtre && tabs.includes(filtre)
+      ? filtre
+      : undefined
+    : article.sousEspace
+  const territoireKey =
+    fromGabarit && territoire && territoire in TERRITOIRES_CONFIG
+      ? (territoire as TerritoireKey)
+      : undefined
+  const crumbs = !espace
+    ? []
+    : territoireKey
+      ? [
+          {
+            label: TERRITOIRES_CONFIG[territoireKey].label,
+            to: `/territoires/${territoireKey}`,
+          },
+          { label: espace.label, to: `/espaces/${espace.key}` },
+          ...(sousEspace
+            ? [{ label: sousEspace, to: filtrePath(`/espaces/${espace.key}`, sousEspace) }]
+            : []),
+        ]
+      : [
+          { label: espace.label, to: `/espaces/${espace.key}` },
+          ...(sousEspace
+            ? [{ label: sousEspace, to: filtrePath(`/espaces/${espace.key}`, sousEspace) }]
+            : []),
+        ]
 
   return (
     <EditorialArticle
@@ -1718,7 +1525,10 @@ function ArticleScreen({
 
 export function Prototype() {
   const navigate = useNavigate()
-  const { pathname, key } = useLocation()
+  const { pathname, search, key } = useLocation()
+  const params = new URLSearchParams(search)
+  const filtre = params.get('filtre')
+  const territoire = params.get('territoire')
   const articleRef = articleFromPath(pathname)
   const article = articleRef
     ? getEditorialArticle(articleRef.espace, articleRef.slug)
@@ -1727,6 +1537,10 @@ export function Prototype() {
 
   function go(next: Screen) {
     navigate(pathForScreen(next))
+  }
+
+  function openGabarit(espace: EspaceKey, sousEspace?: string, fromTerritoire?: TerritoireKey) {
+    navigate(gabaritPath(espace, sousEspace, fromTerritoire))
   }
 
   function goBack() {
@@ -1749,6 +1563,8 @@ export function Prototype() {
       <ArticleScreen
         key={pathname}
         article={article}
+        filtre={filtre}
+        territoire={territoire}
         go={go}
         goBack={goBack}
         onPath={(path) => navigate(path)}
@@ -1762,12 +1578,28 @@ export function Prototype() {
     content = <CollectionsScreen go={go} />
   } else if (screen && screen.startsWith('espace-')) {
     const espaceKey = screen.slice('espace-'.length) as EspaceKey
-    content = <EspaceScreen key={screen} espaceKey={espaceKey} go={go} />
+    content = (
+      <EspaceScreen
+        key={`${screen}${search}`}
+        espaceKey={espaceKey}
+        go={go}
+        filtre={filtre}
+        onOpenGabarit={openGabarit}
+      />
+    )
   } else if (screen && screen.startsWith('territoire-')) {
     const terKey = screen.slice('territoire-'.length) as TerritoireKey
-    content = <TerritoireScreen key={screen} terKey={terKey} go={go} />
+    content = (
+      <TerritoireScreen
+        key={`${screen}${search}`}
+        terKey={terKey}
+        go={go}
+        filtre={filtre}
+        onOpenGabarit={(espace) => openGabarit(espace, undefined, terKey)}
+      />
+    )
   } else {
-    content = <HomeScreen go={go} />
+    content = <HomeScreen go={go} onOpenGabarit={openGabarit} />
   }
 
   return (
