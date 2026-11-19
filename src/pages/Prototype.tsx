@@ -1,18 +1,23 @@
 import * as React from 'react'
-import { ArrowLeft, ChevronDown, MapPin, Search, X } from 'lucide-react'
+import { ArrowLeft, ChevronDown, Search, X } from 'lucide-react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
+import { CollectionEditorialView, CollectionsPageView } from '@/components/features/CollectionsPageView'
 import { EditorialArticle } from '@/components/features/EditorialArticle'
-import { EspaceCultureView } from '@/components/features/EspaceCultureView'
+import { EspacePageView, isDressedEspace } from '@/components/features/EspacePageView'
+import { SearchPanel } from '@/components/features/SearchPanel'
 import { HomeView } from '@/components/features/HomeView'
-import { GascogneMap } from '@/components/features/GascogneMap'
+import { PartenairesView } from '@/components/features/PartenairesView'
+import { TerritoirePageView } from '@/components/features/TerritoirePageView'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { TERRITOIRE_SOUS_TITRES } from '@/data/territoires'
+import { getCollection } from '@/data/collections'
+import { TERRITOIRES_CONFIG } from '@/data/territoires'
 import { getEditorialArticle, articlePath, filtrePath, gabaritPath, EDITORIAL_SPECIMEN, type EditorialArticleContent } from '@/data/editorialArticle'
 import {
   articleFromPath,
+  collectionFromPath,
   pathForScreen,
   screenFromPath,
   type EspaceKey,
@@ -33,9 +38,11 @@ const espaces: Array<{
   { key: 'portraits', label: "Figures d'oc",      accroche: 'Parcours, portraits, engagements', colorVar: '--occ-espace-portraits' },
   { key: 'musique',   label: 'Musiques',          accroche: 'Du son sous toutes ses formes',    colorVar: '--occ-espace-musique' },
   { key: 'scene',     label: 'La Scène occitane', accroche: 'Artistes, scènes, créations',      colorVar: '--occ-espace-scene' },
+  { key: 'histoires', label: 'Histoires de…',     accroche: 'Événements, luttes, idées',        colorVar: '--occ-espace-histoires' },
+  { key: 'cadre',     label: 'Plein cadre',       accroche: 'Des images en perspective',        colorVar: '--occ-espace-cadre' },
 ]
 
-// Menu de la home : 6 espaces. Les deux derniers n'ont pas encore de page.
+// Menu : les 6 espaces de la home. La Scène occitane n'y figure pas.
 const MENU_ESPACES: Array<{
   label: string
   colorVar: string
@@ -45,8 +52,8 @@ const MENU_ESPACES: Array<{
   { key: 'langue',    label: 'Littérature',     colorVar: '--occ-espace-langue' },
   { key: 'portraits', label: "Figures d'oc",    colorVar: '--occ-espace-portraits' },
   { key: 'musique',   label: 'Musiques',        colorVar: '--occ-espace-musique' },
-  { label: 'Histoires de…', colorVar: '--occ-gray' },
-  { label: 'Plein cadre',   colorVar: '--occ-gray' },
+  { key: 'histoires', label: 'Histoires de…', colorVar: '--occ-gray' },
+  { key: 'cadre',     label: 'Plein cadre',   colorVar: '--occ-gray' },
 ]
 
 type EspaceConfig = {
@@ -62,7 +69,7 @@ type EspaceConfig = {
 const ESPACES_CONFIG: Record<EspaceKey, EspaceConfig> = {
   langue: {
     heroTag: 'Article · Langue',
-    tabs: ['Textes', 'Grammaire', 'Littérature', 'Pédagogie', 'Phonologie'],
+    tabs: ['Poésie', 'Théâtre', 'Linguistique', 'Troubadours', 'Renaissance d’oc', 'Prix & Concours', 'Œuvres littéraires', 'Corpus', 'Contes & fables'],
     sections: [
       { title: "Comprendre l'occitan",    badge: 'Article',   badgeColorVar: '--occ-espace-langue' },
       { title: 'Textes & littérature',    badge: 'Archive',   badgeColorVar: '--occ-dark' },
@@ -75,7 +82,7 @@ const ESPACES_CONFIG: Record<EspaceKey, EspaceConfig> = {
   },
   musique: {
     heroTag: 'Article · Musique',
-    tabs: ['Chants & Voix', 'Instruments', 'Danses', 'Artistes & Groupes', 'Archives sonores'],
+    tabs: ['Nova cançon', 'Œuvres musicales', 'Chansons actuelles', 'Organologie / Lutherie', 'Collectages'],
     sections: [
       { title: 'Archives sonores',       badge: 'Archive',  badgeColorVar: '--occ-dark' },
       { title: 'Portraits de musiciens', badge: 'Portrait', badgeColorVar: '--occ-espace-portraits' },
@@ -90,8 +97,8 @@ const ESPACES_CONFIG: Record<EspaceKey, EspaceConfig> = {
     voirAussi: ['portraits', 'fetes'],
   },
   fetes: {
-    heroTag: 'PCI · Fêtes',
-    tabs: ['Fêtes', 'PCI', 'Artisanat', 'Rites', 'Calendrier'],
+    heroTag: 'Fêtes',
+    tabs: ['Fêtes', 'Carnaval', 'Sports & jeux', 'Gastronomie', 'Savoir-faire', 'Danses', 'Chants'],
     sections: [
       { title: 'Fêtes et célébrations',    badge: 'PCI',   badgeColorVar: '--occ-espace-fetes' },
       { title: 'Savoir-faire & artisanat', badge: 'PCI',   badgeColorVar: '--occ-espace-fetes' },
@@ -133,81 +140,32 @@ const ESPACES_CONFIG: Record<EspaceKey, EspaceConfig> = {
     hasAZ: false,
     voirAussi: ['portraits', 'musique'],
   },
-}
-
-type TerritoireConfig = {
-  label: string
-  docsCount: string
-  sections: Array<{ title: string; badge: string; badgeColorVar: string; avatars?: boolean }>
-  hasAgenda: boolean
-  agendaItems: Array<{ date: string; lieu: string; title: string }>
-}
-
-const TERRITOIRES_CONFIG: Record<TerritoireKey, TerritoireConfig> = {
-  gascogne: {
-    label: 'Gascogne',
-    docsCount: '1 240',
+  histoires: {
+    heroTag: 'Histoire des idées',
+    tabs: ['Histoire des idées', 'Politique et société', 'Événements', 'Lieux'],
     sections: [
-      { title: 'Musique',            badge: 'Archive',  badgeColorVar: '--occ-espace-musique' },
-      { title: 'Fêtes & Traditions', badge: 'PCI',      badgeColorVar: '--occ-espace-fetes' },
-      { title: 'Personnalités',      badge: 'Portrait', badgeColorVar: '--occ-espace-portraits', avatars: true },
-    ],
-    hasAgenda: true,
-    agendaItems: [
-      { date: '08 août', lieu: 'Dax',            title: 'Fêtes de Dax' },
-      { date: '15 août', lieu: 'Mont-de-Marsan', title: 'Festival des Landes' },
-    ],
-  },
-  languedoc: {
-    label: 'Languedoc',
-    docsCount: '2 180',
-    sections: [
-      { title: 'Langue',             badge: 'Article',  badgeColorVar: '--occ-espace-langue' },
-      { title: 'Fêtes & Traditions', badge: 'PCI',      badgeColorVar: '--occ-espace-fetes' },
-      { title: 'La Scène',           badge: 'Article',  badgeColorVar: '--occ-espace-scene' },
-      { title: 'Personnalités',      badge: 'Portrait', badgeColorVar: '--occ-espace-portraits', avatars: true },
-    ],
-    hasAgenda: true,
-    agendaItems: [
-      { date: '12 juil.', lieu: 'Montpellier', title: 'Canto lo Vent' },
-      { date: '3 août',   lieu: 'Béziers',     title: 'Festival occitan' },
-    ],
-  },
-  pyrenees: {
-    label: 'Pyrénées',
-    docsCount: '890',
-    sections: [
-      { title: 'Musique',            badge: 'Archive',  badgeColorVar: '--occ-espace-musique' },
-      { title: 'Fêtes & Traditions', badge: 'PCI',      badgeColorVar: '--occ-espace-fetes' },
-      { title: 'Personnalités',      badge: 'Portrait', badgeColorVar: '--occ-espace-portraits', avatars: true },
+      { title: 'Histoire des idées', badge: 'Article', badgeColorVar: '--occ-gray' },
+      { title: 'Politique et société', badge: 'Article', badgeColorVar: '--occ-gray' },
+      { title: 'Sur votre territoire', badge: 'Article', badgeColorVar: '--occ-gray' },
     ],
     hasAgenda: false,
     agendaItems: [],
+    hasAZ: false,
+    voirAussi: [],
   },
-  provence: {
-    label: 'Provence',
-    docsCount: '760',
+  cadre: {
+    heroTag: 'Photographie',
+    tabs: ['Photographie', 'Arts plastiques', 'Cinéma', 'Affiches et éphémères', "Films d'archives"],
     sections: [
-      { title: 'Langue',        badge: 'Article',  badgeColorVar: '--occ-espace-langue' },
-      { title: 'Portraits',     badge: 'Portrait', badgeColorVar: '--occ-espace-portraits' },
-      { title: 'La Scène',      badge: 'Article',  badgeColorVar: '--occ-espace-scene' },
-      { title: 'Personnalités', badge: 'Portrait', badgeColorVar: '--occ-espace-portraits', avatars: true },
+      { title: 'Photographie', badge: 'Article', badgeColorVar: '--occ-gray' },
+      { title: 'Cinéma', badge: 'Article', badgeColorVar: '--occ-gray' },
+      { title: 'Sur votre territoire', badge: 'Article', badgeColorVar: '--occ-gray' },
     ],
-    hasAgenda: true,
-    agendaItems: [
-      { date: '5 juil.', lieu: 'Aix-en-Provence', title: 'Fèsto Vierginenco' },
-    ],
+    hasAgenda: false,
+    agendaItems: [],
+    hasAZ: false,
+    voirAussi: [],
   },
-}
-
-// Tags fictifs — à remplacer par les vraies localisations des contenus à l'intégration.
-const TERRITOIRE_LOCALISATIONS: Record<TerritoireKey | 'limousin' | 'perigord', string[]> = {
-  gascogne: ['Tout', 'Auch', 'Bordeaux', 'Pau', 'Bayonne', 'Gers'],
-  languedoc: ['Tout', 'Toulouse', 'Montpellier', 'Nîmes', 'Carcassonne'],
-  provence: ['Tout', 'Marseille', 'Aix-en-Provence', 'Arles', 'Nice'],
-  pyrenees: ['Tout', 'Foix', 'Tarbes', 'Perpignan'],
-  limousin: ['Tout', 'Limoges', 'Brive', 'Tulle'],
-  perigord: ['Tout', 'Périgueux', 'Sarlat', 'Bergerac'],
 }
 
 // Territoire pills on home — only the 4 with full pages get navigation
@@ -221,38 +179,6 @@ const TERRITOIRE_PILLS: Array<{ key: TerritoireKey | null; label: string }> = [
   { key: null,        label: "Val d'Aran" },
   { key: null,        label: 'Dauphiné' },
 ]
-
-const COLLECTIONS_DATA = {
-  thematiques: [
-    { key: 'langue' as EspaceKey,    label: 'Langue',            colorVar: '--occ-espace-langue',    count: '3 241 docs' },
-    { key: 'musique' as EspaceKey,   label: 'Musique',           colorVar: '--occ-espace-musique',   count: '1 876 docs' },
-    { key: 'fetes' as EspaceKey,     label: 'Fêtes & Traditions', colorVar: '--occ-espace-fetes',    count: '987 docs' },
-    { key: 'portraits' as EspaceKey, label: 'Portraits',         colorVar: '--occ-espace-portraits', count: '2 134 docs' },
-    { key: 'scene' as EspaceKey,     label: 'La Scène occitane', colorVar: '--occ-espace-scene',     count: '612 docs' },
-  ],
-  territoires: [
-    { label: 'Gascogne',  count: '1 243 docs' },
-    { label: 'Languedoc', count: '2 476 docs' },
-    { label: 'Provence',  count: '894 docs' },
-    { label: 'Pyrénées',  count: '612 docs' },
-    { label: 'Limousin',  count: '438 docs' },
-  ],
-  types: [
-    { label: 'Bibliothèque',      icon: '📄', count: '4 821 docs', shade: '#2c3e50' },
-    { label: 'Archives sonores',  icon: '🎵', count: '3 247 docs', shade: '#1a5276' },
-    { label: 'Vidéothèque',       icon: '▶',  count: '1 893 docs', shade: '#4a235a' },
-    { label: 'Iconothèque',       icon: '🖼',  count: '2 104 docs', shade: '#784212' },
-    { label: 'Ressources langue', icon: 'Aa', count: '892 docs',   shade: '#1e8449' },
-    { label: 'Expositions',       icon: '✦',  count: '3 expos',    shade: '#922b21' },
-  ],
-  periodes: [
-    { label: 'Moyen Âge',      span: '10e–15e s.', count: '800 docs',   shade: '#1c2833' },
-    { label: 'Époque moderne', span: '16e–18e s.', count: '1 240 docs', shade: '#2e4057' },
-    { label: '19e siècle',     span: '1800–1900',  count: '2 340 docs', shade: '#1a4a4a' },
-    { label: '20e siècle',     span: '1900–2000',  count: '3 870 docs', shade: '#2d4a1e' },
-    { label: 'Contemporain',   span: '2000 →',     count: '1 450 docs', shade: '#4a1942' },
-  ],
-}
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -403,6 +329,7 @@ function MobileHeader({
   rightSlot?: React.ReactNode
 }) {
   const showBack = Boolean(onBack)
+  const [searchOpen, setSearchOpen] = React.useState(false)
   return (
     <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-white))] px-5">
       <div className="flex min-w-0 items-center gap-2">
@@ -443,11 +370,22 @@ function MobileHeader({
           size="sm"
           className="h-9 w-9 p-0 text-[rgb(var(--occ-dark))]"
           aria-label="Rechercher"
+          aria-expanded={searchOpen}
+          aria-haspopup="dialog"
+          onClick={() => setSearchOpen(true)}
         >
           <Search className="h-5 w-5" />
         </Button>
         <LanguageSwitcher />
       </div>
+      <SearchPanel
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onMenu={() => {
+          setSearchOpen(false)
+          onMenu?.()
+        }}
+      />
     </div>
   )
 }
@@ -721,36 +659,6 @@ function SectionSlider({
   )
 }
 
-// ── AvatarSlider — slider de personnalités avec avatar rond ───────────────────
-
-function AvatarSlider({
-  title,
-  withDivider = true,
-  onCardClick,
-}: {
-  title: string
-  withDivider?: boolean
-  onCardClick?: () => void
-}) {
-  return (
-    <SliderSection title={title} withDivider={withDivider}>
-      {Array.from({ length: 4 }).map((_, idx) => (
-        <button
-          // eslint-disable-next-line react/no-array-index-key
-          key={idx}
-          type="button"
-          onClick={onCardClick}
-          className="flex w-[72px] flex-none snap-start flex-col items-center gap-2"
-        >
-          <div className="h-12 w-12 rounded-full border border-[rgb(var(--occ-border))] bg-[rgb(var(--occ-light))]" />
-          <div className="h-2 w-full rounded bg-[rgb(var(--occ-med))]" />
-          <div className="h-2 w-3/4 rounded bg-[rgb(var(--occ-light))]" />
-        </button>
-      ))}
-    </SliderSection>
-  )
-}
-
 // ── AgendaModule ──────────────────────────────────────────────────────────────
 
 function AgendaModule({
@@ -843,14 +751,6 @@ function CollectionsCtaBlock({
       </section>
     </>
   )
-}
-
-// ── HeroCarousel ──────────────────────────────────────────────────────────────
-
-function espaceFromSection(title: string): EspaceKey | undefined {
-  if (title === 'La Scène') return 'scene'
-  if (title === 'Personnalités') return 'portraits'
-  return espaces.find((item) => item.label === title)?.key
 }
 
 function HomeScreen({
@@ -1071,8 +971,8 @@ function EspaceScreen({
     filtre && config.tabs.includes(filtre) ? filtre : config.tabs[0],
   )
 
-  if (espaceKey === 'fetes') {
-    return <EspaceCultureView go={go} onOpenGabarit={onOpenGabarit} />
+  if (isDressedEspace(espaceKey)) {
+    return <EspacePageView espace={espaceKey} go={go} onOpenGabarit={onOpenGabarit} filtre={filtre} />
   }
 
   return (
@@ -1219,246 +1119,7 @@ function TerritoireScreen({
   filtre?: string | null
   onOpenGabarit: (espace: EspaceKey) => void
 }) {
-  const config = TERRITOIRES_CONFIG[terKey]
-  const [mapOpen, setMapOpen] = React.useState(false)
-
-  return (
-    <div className="min-h-[calc(100dvh-32px)] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))]">
-      <MobileHeader backLabel="Retour" onBack={() => go('home')} onMenu={() => go('menu')} />
-
-      {/* En-tête territoire — fond vert Occitanica */}
-      <div
-        className="px-5 py-5"
-        style={{ background: rgbFromVar('--occ-brand') }}
-      >
-        <div className="text-[20px] font-extrabold text-white">{config.label}</div>
-        <div className="mt-1 flex items-center justify-between gap-3">
-          <div className="min-w-0 text-[12px] text-white/75">{TERRITOIRE_SOUS_TITRES[terKey]}</div>
-          <button
-            type="button"
-            aria-expanded={mapOpen}
-            aria-controls="territoire-carte"
-            onClick={() => setMapOpen((open) => !open)}
-            className="inline-flex shrink-0 items-center gap-1 text-[12px] text-white/90"
-          >
-            {mapOpen ? (
-              <X className="h-3.5 w-3.5" strokeWidth={2} />
-            ) : (
-              <MapPin className="h-3.5 w-3.5" strokeWidth={2} />
-            )}
-            {mapOpen ? 'Fermer' : 'Carte'}
-          </button>
-        </div>
-
-        <div
-          id="territoire-carte"
-          className={[
-            'grid transition-[grid-template-rows] duration-300 ease-out',
-            mapOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
-          ].join(' ')}
-        >
-          <div
-            className={[
-              'overflow-hidden transition-opacity duration-300',
-              mapOpen ? 'opacity-100' : 'opacity-0',
-            ].join(' ')}
-          >
-            {terKey === 'gascogne' ? (
-              <GascogneMap />
-            ) : (
-              <div className="mt-3 flex h-16 items-center justify-center rounded-lg border border-[rgb(var(--occ-border))] bg-[#dce8e8]">
-                <span className="text-[11px] italic text-[rgb(var(--occ-gray))]">
-                  Carte — {config.label}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <FilterTags
-        tags={TERRITOIRE_LOCALISATIONS[terKey]}
-        activeColorVar="--occ-brand"
-        activeLabel={filtre}
-      />
-
-      {/* Sections thématiques */}
-      {config.sections.map((s, index) => {
-        const sectionEspace = espaceFromSection(s.title)
-        return s.avatars ? (
-          <AvatarSlider
-            key={s.title}
-            title={s.title}
-            withDivider={index > 0}
-            onCardClick={sectionEspace ? () => onOpenGabarit(sectionEspace) : undefined}
-          />
-        ) : (
-          <SectionSlider
-            key={s.title}
-            title={s.title}
-            badge={s.badge}
-            badgeColorVar={s.badgeColorVar}
-            onCardClick={sectionEspace ? () => onOpenGabarit(sectionEspace) : undefined}
-            withDivider={index > 0}
-          />
-        )
-      })}
-
-      {/* Module Agenda */}
-      {config.hasAgenda && (
-        <AgendaModule items={config.agendaItems} accentColorVar="--occ-brand" />
-      )}
-
-      {/* Accès Collections Gallica */}
-      <Divider />
-      <section className="px-5 pt-6 pb-8">
-        <button
-          type="button"
-          onClick={() => go('collections')}
-          className="relative w-full overflow-hidden rounded-xl"
-        >
-          <PlaceholderImage className="h-16 w-full" />
-          <div
-            className="absolute inset-0 flex flex-col items-center justify-center gap-2"
-            style={{ background: `${rgbFromVar('--occ-brand')}cc` }}
-          >
-            <div className="text-[10px] font-bold uppercase tracking-[0.09em] text-white">
-              {config.docsCount} documents · Gallica
-            </div>
-            <div className="rounded-full bg-white px-4 py-1.5 text-[11px] font-bold text-[rgb(var(--occ-dark))]">
-              Consulter les archives ↗
-            </div>
-          </div>
-        </button>
-      </section>
-    </div>
-  )
-}
-
-// ── CollectionsScreen ─────────────────────────────────────────────────────────
-
-function CollectionsScreen({ go }: { go: (screen: Screen) => void }) {
-  return (
-    <div className="min-h-[calc(100dvh-32px)] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))]">
-      <MobileHeader backLabel="Retour" onBack={() => go('home')} onMenu={() => go('menu')} />
-
-      {/* Titre */}
-      <div className="px-5 pt-5 pb-4">
-        <h1 className="text-[26px] font-extrabold tracking-tight">Collections</h1>
-        <p className="mt-1 text-[12px] text-[rgb(var(--occ-gray))]">
-          Documents numérisés · Archives · Fonds patrimoniaux
-        </p>
-      </div>
-
-      {/* Barre de recherche → Gallica */}
-      <div className="px-5 pb-4">
-        <div className="flex items-center gap-3 rounded-lg border-2 border-[rgb(var(--occ-brand))] px-4 py-3">
-          <Search className="h-4 w-4 flex-none text-[rgb(var(--occ-brand))]" />
-          <span className="flex-1 text-[12px] text-[rgb(var(--occ-gray))]">
-            Rechercher dans les collections…
-          </span>
-          <div
-            className="rounded px-3 py-1 text-[11px] font-bold text-white"
-            style={{ background: rgbFromVar('--occ-brand') }}
-          >
-            Gallica ↗
-          </div>
-        </div>
-      </div>
-
-      {/* Par thématique */}
-      <SliderSection title="Par thématique" withDivider>
-        {COLLECTIONS_DATA.thematiques.map((c) => (
-          <button
-            key={c.label}
-            type="button"
-            onClick={() => go(`espace-${c.key}`)}
-            className="w-[100px] flex-none snap-start text-left"
-          >
-            <div className="overflow-hidden rounded-lg border border-[rgb(var(--occ-border))]">
-              <div className="relative h-16">
-                <PlaceholderImage className="h-16 w-full" />
-                <div
-                  className="absolute inset-0"
-                  style={{ background: `linear-gradient(transparent 25%, ${rgbFromVar(c.colorVar)}e8)` }}
-                />
-                <div className="absolute inset-x-0 bottom-0 px-2 pb-2">
-                  <div className="text-[10px] font-bold text-white">{c.label}</div>
-                </div>
-              </div>
-              <div className="px-2 py-1.5">
-                <span className="text-[9px] text-[rgb(var(--occ-gray))]">{c.count}</span>
-              </div>
-            </div>
-          </button>
-        ))}
-      </SliderSection>
-
-      {/* Par territoire */}
-      <SliderSection title="Par territoire" withDivider>
-        {COLLECTIONS_DATA.territoires.map((t) => (
-          <div key={t.label} className="w-[100px] flex-none snap-start">
-            <div className="overflow-hidden rounded-lg border border-[rgb(var(--occ-border))]">
-              <div className="relative h-16 bg-[#dce8e8]">
-                <div
-                  className="absolute inset-0"
-                  style={{ background: `linear-gradient(transparent 25%, ${rgbFromVar('--occ-brand')}e8)` }}
-                />
-                <div className="absolute inset-x-0 bottom-0 px-2 pb-2">
-                  <div className="text-[10px] font-bold text-white">{t.label}</div>
-                </div>
-              </div>
-              <div className="px-2 py-1.5">
-                <span className="text-[9px] text-[rgb(var(--occ-gray))]">{t.count}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </SliderSection>
-
-      {/* Par type de document */}
-      <SliderSection title="Par type de document" withDivider>
-        {COLLECTIONS_DATA.types.map((tp) => (
-          <div key={tp.label} className="w-[100px] flex-none snap-start">
-            <div className="overflow-hidden rounded-lg border border-[rgb(var(--occ-border))]">
-              <div
-                className="flex h-16 items-center justify-center"
-                style={{ background: tp.shade }}
-              >
-                <span className="text-2xl">{tp.icon}</span>
-              </div>
-              <div className="px-2 py-1.5">
-                <div className="text-[10px] font-semibold leading-tight">{tp.label}</div>
-                <div className="mt-0.5 text-[9px] text-[rgb(var(--occ-gray))]">{tp.count}</div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </SliderSection>
-
-      {/* Par période */}
-      <SliderSection title="Par période" withDivider className="pb-8">
-        {COLLECTIONS_DATA.periodes.map((p) => (
-          <div key={p.label} className="w-[100px] flex-none snap-start">
-            <div className="overflow-hidden rounded-lg border border-[rgb(var(--occ-border))]">
-              <div
-                className="flex h-16 flex-col items-center justify-center gap-1 px-2"
-                style={{ background: p.shade }}
-              >
-                <span className="text-center text-[10px] font-extrabold leading-tight text-white">
-                  {p.label}
-                </span>
-                <span className="text-[8px] tracking-wide text-white/60">{p.span}</span>
-              </div>
-              <div className="px-2 py-1.5">
-                <span className="text-[9px] text-[rgb(var(--occ-gray))]">{p.count}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </SliderSection>
-    </div>
-  )
+  return <TerritoirePageView terKey={terKey} go={go} filtre={filtre} onOpenGabarit={onOpenGabarit} />
 }
 
 // ── ArticleScreen ─────────────────────────────────────────────────────────────
@@ -1533,6 +1194,8 @@ export function Prototype() {
   const article = articleRef
     ? getEditorialArticle(articleRef.espace, articleRef.slug)
     : undefined
+  const collectionSlug = collectionFromPath(pathname)
+  const collection = collectionSlug ? getCollection(collectionSlug) : undefined
   const screen = screenFromPath(pathname)
 
   function go(next: Screen) {
@@ -1552,7 +1215,11 @@ export function Prototype() {
     return <Navigate to="/" replace />
   }
 
-  if (!article && !screen) {
+  if (collectionSlug && !collection) {
+    return <Navigate to="/collections" replace />
+  }
+
+  if (!article && !collection && !screen) {
     return <Navigate to="/" replace />
   }
 
@@ -1574,8 +1241,12 @@ export function Prototype() {
     content = (
       <MenuScreen go={go} onOpenGabarit={() => navigate(articlePath(EDITORIAL_SPECIMEN))} />
     )
+  } else if (collection) {
+    content = <CollectionEditorialView key={pathname} item={collection} go={go} />
   } else if (screen === 'collections') {
-    content = <CollectionsScreen go={go} />
+    content = <CollectionsPageView go={go} />
+  } else if (screen === 'partenaires') {
+    content = <PartenairesView go={go} />
   } else if (screen && screen.startsWith('espace-')) {
     const espaceKey = screen.slice('espace-'.length) as EspaceKey
     content = (

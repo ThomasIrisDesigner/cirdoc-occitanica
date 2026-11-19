@@ -61,6 +61,9 @@
   --occ-espace-fetes: 120 66 18; /* #784212 */
   --occ-espace-portraits: 30 132 73; /* #1e8449 */
   --occ-espace-scene: 146 43 33; /* #922b21 */
+  /* Pas encore de couleur DA : le gabarit article reprend le gris wireframe. */
+  --occ-espace-histoires: 113 113 122;
+  --occ-espace-cadre: 113 113 122;
 }
 
 html,

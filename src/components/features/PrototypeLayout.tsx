@@ -182,9 +182,10 @@ export function PrototypeLayout({
                   transform: `scale(${mobileScale})`,
                 }}
               >
-                <div className="h-[844px] w-[390px] overflow-hidden rounded-[40px] bg-surface">
+                <div data-overlay-root="phone" className="relative h-[844px] w-[390px] overflow-hidden rounded-[40px] bg-surface">
                   <div
                     ref={mobileScrollRef}
+                    data-page-scroll=""
                     className="scrollbar-hidden h-full w-full overflow-y-auto md:cursor-grab"
                     onPointerDown={(e) => {
                       if (e.pointerType !== 'mouse' || e.button !== 0) return
@@ -230,8 +231,9 @@ export function PrototypeLayout({
           </div>
         ) : (
           <div
+            data-overlay-root="page"
             className={cn(
-              'bg-background text-text',
+              'relative bg-background text-text',
               isRealMobileView ? 'min-h-dvh' : 'min-h-[calc(100dvh-32px)]'
             )}
           >

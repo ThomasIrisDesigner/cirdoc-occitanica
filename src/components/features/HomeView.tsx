@@ -10,21 +10,23 @@ import col7 from '@/assets/home/col-7.png'
 import col8 from '@/assets/home/col-8.png'
 import col9 from '@/assets/home/col-9.png'
 import markCulture from '@/assets/home/mark-culture.png'
-import markLitterature from '@/assets/home/mark-litterature.png'
-import logoMark from '@/assets/home/logo-mark.svg'
-import logoMarkLight from '@/assets/home/logo-mark-light.svg'
-import logoWord from '@/assets/home/logo-word.svg'
-import logoWordLight from '@/assets/home/logo-word-light.svg'
+import markHistoires from '@/assets/home/mark-histoires.png'
+import markImages from '@/assets/home/mark-images.png'
+import markLitterature from '@/assets/home/mark-litterature-lecteur.png'
+import markMusiques from '@/assets/home/mark-musiques.png'
+import markPartage from '@/assets/home/mark-litterature.png'
 import uneActive from '@/assets/home/une-c.png'
 import uneNext from '@/assets/home/une-d.png'
 import unePrev from '@/assets/home/une-b.png'
 import vivaHero from '@/assets/home/viva-c.png'
 import vivaThumb from '@/assets/home/viva-b.png'
-import { IconChevron, IconCollections, IconContact, IconDot, IconFacebook, IconMail, IconMenu, IconSearch } from '@/components/features/HomeIcons'
+import { IconChevron, IconCollections, IconContact, IconFacebook, IconInstagram, IconLinkedin, IconMail, IconMenu, IconSearch, IconYoutube } from '@/components/features/HomeIcons'
+import { LanguagePair } from '@/components/features/LanguagePair'
+import { Logo } from '@/components/features/Logo'
+import { MenuPanel } from '@/components/features/MenuPanel'
+import { SearchPanel } from '@/components/features/SearchPanel'
 import type { EspaceKey, Screen, TerritoireKey } from '@/lib/prototypeRoutes'
 import { typography } from '@/styles/typography'
-
-const LANG_STORAGE_KEY = 'occ-lang'
 
 const UNE_TITLE = 'Lorem ipsum dolor sit amet, consectetur adipiscing'
 
@@ -42,10 +44,10 @@ const ESPACES: Array<{
 }> = [
   { label: 'Culture vivante', line: 'Des pratiques qui rassemblent', image: markCulture, espace: 'fetes' },
   { label: 'Littérature', line: 'Textes et regards critiques', image: markLitterature, espace: 'langue' },
-  { label: "Figures d'oc", line: 'Parcours, portraits, engagements', image: markLitterature, espace: 'portraits' },
-  { label: 'Musiques', line: 'Du son sous toutes ses formes', image: markLitterature, espace: 'musique' },
-  { label: 'Histoires de…', line: 'Événements, luttes, idées', image: markLitterature },
-  { label: 'Plein cadre', line: 'Des images en perspective', image: markLitterature },
+  { label: "Figures d'oc", line: 'Parcours, portraits, engagements', image: markPartage, espace: 'portraits' },
+  { label: 'Musiques', line: 'Du son sous toutes ses formes', image: markMusiques, espace: 'musique' },
+  { label: 'Histoires de…', line: 'Événements, luttes, idées', image: markHistoires, espace: 'histoires' },
+  { label: 'Plein cadre', line: 'Des images en perspective', image: markImages, espace: 'cadre' },
 ]
 
 const TERRITOIRES: Array<{ label: string; key: TerritoireKey | null }> = [
@@ -63,8 +65,8 @@ const COMPACTS: Array<{ category: string; title: string; image: string; espace?:
   { category: 'Littérature', title: 'Lorem ipsum dolor', image: vivaThumb, espace: 'langue' },
   { category: "Figures d'oc", title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit', image: vivaThumb, espace: 'portraits' },
   { category: 'Musiques', title: 'Lorem ipsum', image: vivaHero, espace: 'musique' },
-  { category: 'Histoires de…', title: 'Lorem ipsum dolor sit amet adipiscing', image: vivaThumb },
-  { category: 'Plein cadre', title: 'Lorem ipsum dolor sit amet', image: vivaHero },
+  { category: 'Histoires de…', title: 'Lorem ipsum dolor sit amet adipiscing', image: vivaThumb, espace: 'histoires' },
+  { category: 'Plein cadre', title: 'Lorem ipsum dolor sit amet', image: vivaHero, espace: 'cadre' },
 ]
 
 const MOSAIC: Array<
@@ -135,45 +137,6 @@ export function SliderArrows({
 function scrollRow(row: HTMLDivElement | null, direction: -1 | 1) {
   if (!row) return
   row.scrollBy({ left: direction * Math.round(row.clientWidth * 0.72), behavior: 'smooth' })
-}
-
-function Logo({ light = false }: { light?: boolean }) {
-  return (
-    <span className="relative block h-16 w-[66px]">
-      <img src={light ? logoMarkLight : logoMark} alt="" className="absolute inset-x-0 top-0 h-12 w-full object-contain" />
-      <img src={light ? logoWordLight : logoWord} alt="Occitanica" className="absolute bottom-0 left-[2%] h-auto w-[95%]" />
-    </span>
-  )
-}
-
-function LanguagePair() {
-  const [lang, setLang] = useState<'fr' | 'oc'>(() => {
-    try {
-      return sessionStorage.getItem(LANG_STORAGE_KEY) === 'oc' ? 'oc' : 'fr'
-    } catch {
-      return 'fr'
-    }
-  })
-
-  function choose(next: 'fr' | 'oc') {
-    setLang(next)
-    try {
-      sessionStorage.setItem(LANG_STORAGE_KEY, next)
-    } catch {
-      // ignore
-    }
-  }
-
-  return (
-    <div className="flex h-12 items-stretch rounded-pill border border-border px-1">
-      {(['fr', 'oc'] as const).map((code) => (
-        <button key={code} type="button" onClick={() => choose(code)} className="inline-flex items-center px-2" aria-pressed={lang === code}>
-          {lang === code && <IconDot className="mr-1 size-1.5 text-[rgb(var(--color-action))]" />}
-          <span className={lang === code ? typography.uiLangActive : typography.uiLangInactive}>{code.toUpperCase()}</span>
-        </button>
-      ))}
-    </div>
-  )
 }
 
 const UNE_ACTIVE_W = 294
@@ -330,32 +293,85 @@ function UneCarousel({ onDiscover }: { onDiscover: () => void }) {
   )
 }
 
-export function SiteHeader({ onMenu, onLogo }: { onMenu: () => void; onLogo?: () => void }) {
-  const logo = <Logo />
+export function SiteHeader({
+  go,
+  onLogo,
+  tone = 'light',
+}: {
+  go: (screen: Screen) => void
+  onLogo?: () => void
+  tone?: 'light' | 'dark'
+}) {
+  const dark = tone === 'dark'
+  const logo = <Logo light={dark} />
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const openSearch = () => {
+    setMenuOpen(false)
+    setSearchOpen(true)
+  }
+  const openMenu = () => {
+    setSearchOpen(false)
+    setMenuOpen(true)
+  }
+  const control = dark
+    ? 'border-[rgb(var(--color-accent-sand))] text-[rgb(var(--color-accent-sand))]'
+    : 'border-border'
   return (
-    <header className="flex items-center justify-between px-4 py-3">
+    <header
+      className={`flex items-center justify-between px-4 py-3 ${
+        dark ? 'bg-collections text-[rgb(var(--color-accent-sand))]' : ''
+      }`}
+    >
       {onLogo ? (
         <button type="button" onClick={onLogo} aria-label="Accueil" className="text-left">{logo}</button>
       ) : logo}
       <div className="flex items-center gap-2">
-        <button type="button" aria-label="Rechercher" className="grid size-12 place-items-center rounded-pill border border-border">
+        <button
+          type="button"
+          aria-label="Rechercher"
+          aria-expanded={searchOpen}
+          aria-haspopup="dialog"
+          onClick={openSearch}
+          className={`grid size-12 place-items-center rounded-pill border ${control}`}
+        >
           <IconSearch className="size-[26px]" />
         </button>
         <button
           type="button"
           aria-label="Ouvrir le menu"
-          onClick={onMenu}
-          className="grid size-12 place-items-center rounded-pill border border-border"
+          aria-expanded={menuOpen}
+          aria-haspopup="dialog"
+          onClick={openMenu}
+          className={`grid size-12 place-items-center rounded-pill border ${control}`}
         >
           <IconMenu className="h-[18px] w-auto" />
         </button>
-        <LanguagePair />
+        <LanguagePair tone={tone} />
       </div>
+      <MenuPanel
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onSearch={openSearch}
+        onLogo={() => {
+          setMenuOpen(false)
+          onLogo?.()
+        }}
+        go={(screen) => {
+          setMenuOpen(false)
+          go(screen)
+        }}
+      />
+      <SearchPanel
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onMenu={openMenu}
+      />
     </header>
   )
 }
 
-export function SiteFooter() {
+export function SiteFooter({ go }: { go: (screen: Screen) => void }) {
   return (
     <footer className="bg-footer px-4 pt-6 text-[rgb(var(--color-background-warm))]">
       <div className="py-6">
@@ -387,6 +403,15 @@ export function SiteFooter() {
           <span aria-label="Courriel" className="grid size-9 place-items-center rounded-[18px] bg-text">
             <IconMail className="h-auto w-[18px] text-[rgb(var(--color-action-hover))]" />
           </span>
+          <span aria-label="LinkedIn" className="grid size-9 place-items-center rounded-[18px] bg-text">
+            <IconLinkedin className="h-[18px] w-auto text-[rgb(var(--color-action-hover))]" />
+          </span>
+          <span aria-label="Instagram" className="grid size-9 place-items-center rounded-[18px] bg-text">
+            <IconInstagram className="size-[18px] text-[rgb(var(--color-action-hover))]" />
+          </span>
+          <span aria-label="YouTube" className="grid size-9 place-items-center rounded-[18px] bg-text">
+            <IconYoutube className="h-auto w-5 text-[rgb(var(--color-action-hover))]" />
+          </span>
         </div>
       </div>
       <div className="flex flex-col gap-4 py-4">
@@ -408,6 +433,13 @@ export function SiteFooter() {
         <div className="h-px w-full bg-[rgb(var(--color-action-hover))]" />
       </div>
       <div className={`${typography.footerLink} pb-6 pt-4`}>
+        <button
+          type="button"
+          onClick={() => go('partenaires')}
+          className="flex min-h-9 w-full items-center text-left"
+        >
+          Partenaires
+        </button>
         {['Mentions légales et crédits', 'Entrepôt OAI-PMH', 'Informations sur les cookies'].map((label) => (
           <p key={label} className="flex min-h-9 items-center">{label}</p>
         ))}
@@ -439,7 +471,7 @@ export function HomeView({
 
   return (
     <div className="bg-[rgb(var(--color-background-warm))] text-text">
-      <SiteHeader onMenu={() => go('menu')} />
+      <SiteHeader go={go} />
 
       <UneCarousel onDiscover={() => onOpenGabarit('musique')} />
 
@@ -585,7 +617,7 @@ export function HomeView({
         </div>
       </section>
 
-      <SiteFooter />
+      <SiteFooter go={go} />
     </div>
   )
 }

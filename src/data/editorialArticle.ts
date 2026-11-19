@@ -75,7 +75,7 @@ export type EditorialArticleContent = {
 export const EDITORIAL_ARTICLE: EditorialArticleContent = {
   espace: 'musique',
   slug: 'boha',
-  sousEspace: 'Instruments',
+  sousEspace: 'Organologie / Lutherie',
   kicker: 'Article',
   kickerColorVar: '--occ-espace-musique',
   title: 'Boha',
@@ -176,9 +176,8 @@ export const EDITORIAL_ARTICLE: EditorialArticleContent = {
   ],
   maleta: 'Écouter une boha en classe',
   tags: [
-    { label: 'Instruments', href: filtrePath('/espaces/musique', 'Instruments') },
-    { label: 'Danses', href: filtrePath('/espaces/musique', 'Danses') },
-    { label: 'Bordeaux', href: filtrePath('/territoires/gascogne', 'Bordeaux') },
+    { label: 'Organologie / Lutherie', href: filtrePath('/espaces/musique', 'Organologie / Lutherie') },
+    { label: 'Danses', href: filtrePath('/espaces/fetes', 'Danses') },
   ],
 }
 
@@ -250,10 +249,8 @@ export const EDITORIAL_SPECIMEN: EditorialArticleContent = {
   ],
   maleta: 'Intitulé du lien pédagogique',
   tags: [
-    { label: 'Instruments', href: filtrePath('/espaces/musique', 'Instruments') },
-    { label: 'Chants & Voix', href: filtrePath('/espaces/musique', 'Chants & Voix') },
-    { label: 'Bordeaux', href: filtrePath('/territoires/gascogne', 'Bordeaux') },
-    { label: 'Limoges', href: null },
+    { label: 'Organologie / Lutherie', href: filtrePath('/espaces/musique', 'Organologie / Lutherie') },
+    { label: 'Collectages', href: filtrePath('/espaces/musique', 'Collectages') },
   ],
 }
 
@@ -277,6 +274,14 @@ export function gabaritPath(
   return query ? `${path}?${query}` : path
 }
 
+const SPECIMEN_TAGS: Partial<Record<EspaceKey, string[]>> = {
+  fetes: ['Fêtes', 'Carnaval', 'Savoir-faire'],
+  langue: ['Poésie', 'Linguistique', 'Contes & fables'],
+  musique: ['Organologie / Lutherie', 'Collectages'],
+  histoires: ['Histoire des idées', 'Événements', 'Lieux'],
+  cadre: ['Photographie', 'Cinéma', "Films d'archives"],
+}
+
 export function getEditorialArticle(
   espace: string,
   slug: string,
@@ -286,9 +291,14 @@ export function getEditorialArticle(
   if (slug !== EDITORIAL_SPECIMEN.slug) return undefined
   if (!(ESPACE_KEYS as readonly string[]).includes(espace)) return undefined
   const key = espace as EspaceKey
+  const tags = (SPECIMEN_TAGS[key] ?? []).map((label) => ({
+    label,
+    href: filtrePath(`/espaces/${key}`, label),
+  }))
   return {
     ...EDITORIAL_SPECIMEN,
     espace: key,
     kickerColorVar: `--occ-espace-${key}`,
+    tags,
   }
 }

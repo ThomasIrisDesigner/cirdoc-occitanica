@@ -45,6 +45,47 @@ export function IconFacebook({ className = 'h-5 w-auto' }: IconProps) {
   )
 }
 
+export function IconLinkedin({ className = 'h-[18px] w-auto' }: IconProps) {
+  return (
+    <svg viewBox="3.2 3.2 17.6 17.4" className={className} aria-hidden>
+      <path
+        d="M5.337 7.433a2.064 2.064 0 1 1 0-4.128 2.064 2.064 0 0 1 0 4.128zM7.119 20.452H3.555V9h3.564v11.452zM20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+export function IconInstagram({ className = 'size-[18px]' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5zm0 2.2A2.8 2.8 0 0 0 5.2 8v8A2.8 2.8 0 0 0 8 18.8h8a2.8 2.8 0 0 0 2.8-2.8V8A2.8 2.8 0 0 0 16 5.2H8z"
+      />
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M12 8.1a3.9 3.9 0 1 1 0 7.8 3.9 3.9 0 0 1 0-7.8zm0 1.9a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"
+      />
+      <circle cx="16.85" cy="7.15" r="1.05" fill="currentColor" />
+    </svg>
+  )
+}
+
+export function IconYoutube({ className = 'h-auto w-5' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 17" className={className} aria-hidden>
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M23.2 2.7A2.9 2.9 0 0 0 21.1.6C19.3.1 12 .1 12 .1S4.7.1 2.9.6A2.9 2.9 0 0 0 .8 2.7 30 30 0 0 0 .3 8.5a30 30 0 0 0 .5 5.8 2.9 2.9 0 0 0 2.1 2.1c1.8.5 9.1.5 9.1.5s7.3 0 9.1-.5a2.9 2.9 0 0 0 2.1-2.1 30 30 0 0 0 .5-5.8 30 30 0 0 0-.5-5.8zM9.7 12.2V4.8L15.8 8.5 9.7 12.2z"
+      />
+    </svg>
+  )
+}
+
 export function IconMail({ className = 'h-auto w-[18px]' }: IconProps) {
   return (
     <svg viewBox="0 0 18 13.5056" className={className} aria-hidden>
