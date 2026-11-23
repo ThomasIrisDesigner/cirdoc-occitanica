@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { getCollection } from '@/data/collections'
 import { TERRITOIRES_CONFIG } from '@/data/territoires'
-import { getEditorialArticle, articlePath, filtrePath, gabaritPath, EDITORIAL_SPECIMEN, type EditorialArticleContent } from '@/data/editorialArticle'
+import { getEditorialArticle, articlePath, filtrePath, gabaritPath, EDITORIAL_SPECIMEN, PRESENTATION_ARTICLE, PRESENTATION_ARTICLE_PATH, type EditorialArticleContent } from '@/data/editorialArticle'
 import {
   articleFromPath,
   collectionFromPath,
@@ -1129,14 +1129,12 @@ function ArticleScreen({
   filtre,
   territoire,
   go,
-  goBack,
   onPath,
 }: {
   article: EditorialArticleContent
   filtre?: string | null
   territoire?: string | null
   go: (screen: Screen) => void
-  goBack: () => void
   onPath: (path: string) => void
 }) {
   const espace = espaces.find((item) => item.key === article.espace)
@@ -1175,7 +1173,6 @@ function ArticleScreen({
     <EditorialArticle
       article={article}
       crumbs={crumbs}
-      header={<MobileHeader backLabel="Retour" onBack={goBack} onMenu={() => go('menu')} />}
       onNavigate={go}
       onPath={onPath}
     />
@@ -1186,7 +1183,7 @@ function ArticleScreen({
 
 export function Prototype() {
   const navigate = useNavigate()
-  const { pathname, search, key } = useLocation()
+  const { pathname, search } = useLocation()
   const params = new URLSearchParams(search)
   const filtre = params.get('filtre')
   const territoire = params.get('territoire')
@@ -1197,6 +1194,7 @@ export function Prototype() {
   const collectionSlug = collectionFromPath(pathname)
   const collection = collectionSlug ? getCollection(collectionSlug) : undefined
   const screen = screenFromPath(pathname)
+  const isPresentation = pathname === PRESENTATION_ARTICLE_PATH
 
   function go(next: Screen) {
     navigate(pathForScreen(next))
@@ -1204,11 +1202,6 @@ export function Prototype() {
 
   function openGabarit(espace: EspaceKey, sousEspace?: string, fromTerritoire?: TerritoireKey) {
     navigate(gabaritPath(espace, sousEspace, fromTerritoire))
-  }
-
-  function goBack() {
-    if (key !== 'default') navigate(-1)
-    else navigate('/')
   }
 
   if (articleRef && !article) {
@@ -1219,13 +1212,23 @@ export function Prototype() {
     return <Navigate to="/collections" replace />
   }
 
-  if (!article && !collection && !screen) {
+  if (!article && !collection && !screen && !isPresentation) {
     return <Navigate to="/" replace />
   }
 
   let content: React.ReactNode
 
-  if (article) {
+  if (isPresentation) {
+    content = (
+      <EditorialArticle
+        key={pathname}
+        article={PRESENTATION_ARTICLE}
+        crumbs={[{ label: 'Collections', to: '/collections' }]}
+        onNavigate={go}
+        onPath={(path) => navigate(path)}
+      />
+    )
+  } else if (article) {
     content = (
       <ArticleScreen
         key={pathname}
@@ -1233,7 +1236,6 @@ export function Prototype() {
         filtre={filtre}
         territoire={territoire}
         go={go}
-        goBack={goBack}
         onPath={(path) => navigate(path)}
       />
     )

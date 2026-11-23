@@ -1,3 +1,4 @@
+import unePresentation from '@/assets/home/une-a.png'
 import { ESPACE_KEYS, type EspaceKey, type Screen, type TerritoireKey } from '@/lib/prototypeRoutes'
 
 /**
@@ -63,13 +64,24 @@ export type EditorialArticleContent = {
   sources?: Array<{ title: string; detail: string }>
   territoire?: { name: string; line: string; screen: Screen }
   portrait?: { name: string; line: string; screen: Screen }
-  suggestions: Array<{ type: string; title: string; screen: Screen }>
+  /** Encart dans le corps. Distinct du rail « Autour de cet article ». */
+  lireAussi?: { title: string; screen: Screen }
+  /**
+   * Articles liés à la main pour « Autour de cet article ».
+   * Ils s’affichent en premier, dans cet ordre. La remontée par tag suit.
+   */
+  suggestions: Array<{ title: string; screen: Screen }>
   maleta?: string
   /**
-   * Sous-ensemble des filtres des pages Espace et Territoire.
-   * href ouvre la page parente avec ce filtre. null : le tag s'affiche, sans navigation.
+   * Tags de l'espace de l'article. Ils classent l'article et ouvrent sa liste.
+   * href ouvre la page du tag. null : la pastille s'affiche, sans navigation.
    */
   tags: Array<{ label: string; href: string | null }>
+  /**
+   * Pastilles ajoutées à la main, en pied d'article seulement.
+   * Elles ouvrent la page du tag, sans ranger l'article dans cette liste.
+   */
+  rebonds?: Array<{ label: string; href: string }>
 }
 
 export const EDITORIAL_ARTICLE: EditorialArticleContent = {
@@ -78,8 +90,9 @@ export const EDITORIAL_ARTICLE: EditorialArticleContent = {
   sousEspace: 'Organologie / Lutherie',
   kicker: 'Article',
   kickerColorVar: '--occ-espace-musique',
-  title: 'Boha',
-  chapo: 'Cornemuse des Landes de Gascogne',
+  title: 'Boha, la cornemuse des Landes de Gascogne',
+  chapo:
+    'La cornemuse connue aujourd’hui sous le nom de cornemuse des Landes de Gascogne porte plusieurs noms en gascon : boha, bohaussac, chalemina, ou encore bohica. Le plus courant est boha.',
   author: 'Bohaires de Gasconha, CIRDOC',
   meta: '6 min de lecture',
   heroSrc: BOHA,
@@ -88,11 +101,7 @@ export const EDITORIAL_ARTICLE: EditorialArticleContent = {
   blocks: [
     {
       type: 'paragraph',
-      text: 'La cornemuse connue aujourd’hui sous le nom de cornemuse des Landes de Gascogne porte plusieurs noms en gascon : boha, bohaussac, chalemina, ou encore bohica. Le plus courant est boha. Il retient le souffle, là où bonlora, plus rare, renvoie au sac.',
-    },
-    {
-      type: 'paragraph',
-      text: 'De toutes les cornemuses du domaine français, elle est la seule du type « clarinette ». Son tuyau mélodique a une perce cylindrique et une anche simple. Les autres, comme le hautbois, ont une perce conique et une anche double.',
+      text: 'Il retient le souffle, là où bonlora, plus rare, renvoie au sac. De toutes les cornemuses du domaine français, elle est la seule du type « clarinette ». Son tuyau mélodique a une perce cylindrique et une anche simple. Les autres, comme le hautbois, ont une perce conique et une anche double.',
     },
     {
       type: 'quote',
@@ -142,16 +151,6 @@ export const EDITORIAL_ARTICLE: EditorialArticleContent = {
       type: 'paragraph',
       text: 'Les bohaires se comptent aujourd’hui par dizaines dans le sud de la France, et bien au-delà. La boha mène des bals, des rues, des concerts. Elle peut gagner un bourdon, ou des trous de plus pour un chromatisme. Elle reste la seule cornemuse française de type clarinette, et elle est vivante.',
     },
-    {
-      type: 'carousel',
-      slides: [
-        { src: BOHA, label: 'Le jeu' },
-        { src: BOHA, label: 'Le sac' },
-        { src: BOHA, label: 'Le pihet' },
-      ],
-      caption: 'Détails du même cliché : le musicien, la poche, le tuyau.',
-      credit: 'Photographie · Occitanica',
-    },
   ],
   sources: [
     {
@@ -169,15 +168,17 @@ export const EDITORIAL_ARTICLE: EditorialArticleContent = {
     line: 'Dernier cornemuseux connu. Il joue à Bazas, pour les conscrits et les bals.',
     screen: 'espace-portraits',
   },
+  lireAussi: { title: 'Les rondeaux gascons', screen: 'article' },
   suggestions: [
-    { type: 'Article', title: 'Les rondeaux gascons', screen: 'article' },
-    { type: 'Fiche PCI', title: 'Danses et instruments', screen: 'espace-fetes' },
-    { type: 'Portrait', title: 'Alain Cadeillan', screen: 'espace-portraits' },
+    { title: 'Danses et instruments', screen: 'espace-fetes' },
+    { title: 'Alain Cadeillan', screen: 'espace-portraits' },
   ],
   maleta: 'Écouter une boha en classe',
   tags: [
     { label: 'Organologie / Lutherie', href: filtrePath('/espaces/musique', 'Organologie / Lutherie') },
-    { label: 'Danses', href: filtrePath('/espaces/fetes', 'Danses') },
+  ],
+  rebonds: [
+    { label: 'Savoir-faire', href: filtrePath('/espaces/fetes', 'Savoir-faire') },
   ],
 }
 
@@ -242,16 +243,29 @@ export const EDITORIAL_SPECIMEN: EditorialArticleContent = {
     line: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
     screen: 'espace-portraits',
   },
+  lireAussi: { title: 'Titre d’un article lié', screen: 'article' },
   suggestions: [
-    { type: 'Article', title: 'Titre d’un article lié', screen: 'article' },
-    { type: 'Fiche PCI', title: 'Titre d’une fiche liée', screen: 'espace-fetes' },
-    { type: 'Portrait', title: 'Titre d’un portrait lié', screen: 'espace-portraits' },
+    { title: 'Titre d’une fiche liée', screen: 'espace-fetes' },
+    { title: 'Titre d’un portrait lié', screen: 'espace-portraits' },
   ],
   maleta: 'Intitulé du lien pédagogique',
   tags: [
     { label: 'Organologie / Lutherie', href: filtrePath('/espaces/musique', 'Organologie / Lutherie') },
     { label: 'Collectages', href: filtrePath('/espaces/musique', 'Collectages') },
   ],
+}
+
+/** Article classique ouvert depuis la une de Collections. */
+export const PRESENTATION_ARTICLE_PATH = '/articles/presentation-des-collections'
+
+export const PRESENTATION_ARTICLE: EditorialArticleContent = {
+  ...EDITORIAL_SPECIMEN,
+  slug: 'presentation-des-collections',
+  title: 'Présentation de nos collections',
+  chapo: 'Les fonds du CIRDOC et de ses partenaires, et la façon de les parcourir.',
+  author: 'CIRDOC, Institut occitan de cultura',
+  heroSrc: unePresentation,
+  tags: [],
 }
 
 const ARTICLES = [EDITORIAL_ARTICLE, EDITORIAL_SPECIMEN]

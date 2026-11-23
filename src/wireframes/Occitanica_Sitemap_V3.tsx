@@ -1,5 +1,6 @@
-
 import { useState } from "react";
+import { ArticleForm } from "@/wireframes/ArticleForm";
+import { ArticleRules } from "@/wireframes/ArticleRules";
 
 // ── Palette ───────────────────────────────────────────────────
 const COLORS = {
@@ -630,7 +631,7 @@ const PRINCIPES = [
 
 export default function Sitemap() {
   const [activeTab, setActiveTab] = useState(0);
-  const TABS_NAV = ["Arborescence", "Recherche"];
+  const TABS_NAV = ["Arborescence", "Recherche", "Formulaire article", "Règles"];
 
   return (
     <div className="bg-white min-h-screen p-4" style={{ fontFamily: "system-ui, sans-serif" }}>
@@ -856,6 +857,10 @@ export default function Sitemap() {
 
         </div>
       )}
+
+      {activeTab === 2 && <ArticleForm />}
+
+      {activeTab === 3 && <ArticleRules />}
 
       {/* ── Onglet 3 : Principes de conception ── (masqué) */}
       {false && (

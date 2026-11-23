@@ -127,7 +127,12 @@ export function MenuPanel({
           aria-current={collectionsCurrent ? 'page' : undefined}
           className={`${typography.menuItem} flex w-full items-center gap-2 px-6 py-4 text-left active:bg-[rgb(var(--color-surface-emphasis))] ${rowFocus} ${collectionsCurrent ? currentItem : ''}`}
         >
-          <IconCollections className="h-6 w-auto [transform:translateY(-3px)] text-[rgb(var(--color-action))]" />
+          <span
+            aria-hidden
+            className={`grid size-[28px] shrink-0 place-items-center ${collectionsCurrent ? 'bg-action' : 'bg-collections'}`}
+          >
+            <IconCollections className="h-[14px] w-auto text-[rgb(var(--color-background-warm))]" />
+          </span>
           Collections
         </button>
 

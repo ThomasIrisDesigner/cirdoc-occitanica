@@ -1,13 +1,22 @@
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 
-import { IconSearch } from '@/components/features/HomeIcons'
+import { IconSearch, IconYoutube } from '@/components/features/HomeIcons'
 import { SiteFooter, SiteHeader, SliderArrows } from '@/components/features/HomeView'
 import {
+  CIRDOC_YOUTUBE,
+  COLLECTION_THEMES,
   COLLECTIONS_LEAD,
-  COLLECTIONS_RAILS,
+  COLLECTIONS_PHARES,
+  DOCUMENTS_REMARQUABLES,
+  EN_IMAGES,
+  FONDS_ARCHIVES,
+  YOUTUBE_FRAMES,
+  type CollectionCard,
   type CollectionItem,
+  type ImageCollection,
 } from '@/data/collections'
+import { PRESENTATION_ARTICLE_PATH } from '@/data/editorialArticle'
 import { GALLICA_ADVANCED, gallicaResultsUrl } from '@/lib/gallica'
 import type { Screen } from '@/lib/prototypeRoutes'
 import { typography } from '@/styles/typography'
@@ -28,76 +37,156 @@ function ExternalMark() {
   )
 }
 
-function leavesSite(item: CollectionItem) {
-  return item.destination === 'gallica' || item.destination === 'external'
+const focusRing =
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-accent-sand))]'
+
+function holdPlaceholder(event: MouseEvent<HTMLAnchorElement>) {
+  if (event.currentTarget.getAttribute('href') === '#') event.preventDefault()
 }
 
-function CountLine({ item }: { item: CollectionItem }) {
+function PlusMark({ className }: { className?: string }) {
   return (
-    <span className={`${typography.editorialSecondary} inline-flex items-center gap-2 text-[rgb(var(--color-accent-sand))]`}>
-      {item.meta ?? `${item.count} documents`}
-      {leavesSite(item) ? (
-        <>
-          <ExternalMark />
-          <span className="sr-only">, nouvel onglet</span>
-        </>
-      ) : null}
-    </span>
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
+      <path d="M19 12H5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12 5v14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
   )
 }
 
-function CollectionCard({ item, featured = false }: { item: CollectionItem; featured?: boolean }) {
-  const className = featured
-    ? 'flex w-full flex-col gap-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]'
-    : 'flex w-60 shrink-0 flex-col gap-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]'
-  const body = (
-    <>
-      <img
-        src={item.image}
-        alt=""
-        className={featured ? 'h-[200px] w-full object-cover' : 'h-[140px] w-full object-cover'}
-      />
+function RailCard({ item }: { item: CollectionCard | ImageCollection }) {
+  const line = 'documents' in item ? item.documents : item.description
+  return (
+    <a
+      href={item.href}
+      onClick={holdPlaceholder}
+      className={`flex w-60 shrink-0 flex-col gap-4 text-left ${focusRing}`}
+    >
+      <img src={item.image} alt="" className="h-[140px] w-full object-cover" />
       <span className="flex flex-col gap-2">
-        <span className={featured ? typography.cardTitle : typography.cardTitleCompact}>{item.title}</span>
-        {item.article ? (
-          <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]}`}>Article</span>
-        ) : (
-          <CountLine item={item} />
-        )}
+        <span className={typography.cardTitleCompact}>{item.title}</span>
+        <span className={`${typography.editorialSecondary} text-[rgb(var(--color-accent-sand))]`}>
+          {line}
+        </span>
       </span>
-    </>
+    </a>
   )
+}
 
-  if (leavesSite(item)) {
-    const href = item.destination === 'gallica' ? gallicaResultsUrl(item.query) : item.href
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
-        {body}
-      </a>
-    )
-  }
+function CardRail({ title, items }: { title: string; items: Array<CollectionCard | ImageCollection> }) {
+  const rowRef = useRef<HTMLDivElement | null>(null)
 
   return (
-    <Link to={`/collections/${item.slug}`} className={className}>
-      {body}
-    </Link>
+    <section className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h2 className={typography.heading}>{title}</h2>
+        <SliderArrows
+          label={title}
+          onPrev={() => scrollRow(rowRef.current, -1)}
+          onNext={() => scrollRow(rowRef.current, 1)}
+        />
+      </div>
+      <div
+        ref={rowRef}
+        data-h-scroller="true"
+        className="scrollbar-hidden -mr-4 flex gap-4 overflow-x-auto"
+      >
+        {items.map((item) => (
+          <RailCard key={item.title} item={item} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function YoutubeBand() {
+  const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const [reduced, setReduced] = useState(false)
+
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const update = () => setReduced(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    if (reduced || paused) return
+    const id = window.setInterval(() => {
+      setIndex((current) => (current + 1) % YOUTUBE_FRAMES.length)
+    }, 7000)
+    return () => window.clearInterval(id)
+  }, [paused, reduced])
+
+  return (
+    <section>
+      <div className="flex flex-col gap-4 bg-[rgb(var(--color-collections-deep))] p-4">
+        <div className="relative h-[200px] overflow-hidden">
+          {YOUTUBE_FRAMES.map((src, frame) => (
+            <img
+              key={src}
+              src={src}
+              alt=""
+              className={`absolute inset-0 size-full object-cover transition-opacity duration-[1600ms] ease-in-out ${
+                frame === index ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          ))}
+          <span className="absolute left-0 top-0 grid size-10 place-items-center bg-[rgb(var(--color-text)/0.8)]">
+            <IconYoutube className="h-4 w-auto text-[rgb(var(--color-action))]" />
+          </span>
+          {reduced ? null : (
+            <button
+              type="button"
+              aria-pressed={paused}
+              aria-label={paused ? 'Relancer le défilement des vidéos' : 'Mettre en pause le défilement des vidéos'}
+              onClick={() => setPaused((current) => !current)}
+              className="absolute bottom-2 right-2 grid size-11 place-items-center bg-[rgb(var(--color-text)/0.8)] text-[rgb(var(--color-background-warm))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-accent-sand))]"
+            >
+              <span aria-hidden className="text-xs font-bold">
+                {paused ? '▶' : '❚❚'}
+              </span>
+            </button>
+          )}
+        </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <h2 className={typography.heading}>Nos vidéos sur YouTube</h2>
+            <p className={typography.editorialSecondary}>Entretiens, collectages et archives filmées</p>
+          </div>
+          <a
+            href={CIRDOC_YOUTUBE}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex min-h-11 items-center gap-2 self-start ${focusRing}`}
+          >
+            <span className={typography.footerTitle}>Voir la chaîne</span>
+            <span aria-hidden>↗</span>
+            <span className="sr-only">, nouvel onglet</span>
+          </a>
+        </div>
+      </div>
+    </section>
   )
 }
 
 export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
   const titleId = useId()
+  const fondsId = useId()
   const fieldRef = useRef<HTMLInputElement>(null)
-  const railRefs = useRef<Array<HTMLDivElement | null>>([])
   const [query, setQuery] = useState('')
+  const [fondsOpen, setFondsOpen] = useState(false)
 
   return (
     <div className="bg-collections text-[rgb(var(--color-background-warm))]">
       <SiteHeader go={go} onLogo={() => go('home')} tone="dark" />
 
-      <section className="px-4 pb-16 pt-8">
+      <div className="flex flex-col gap-10 px-4 pb-10 pt-8">
+      <section>
         <h1 className={typography.title}>Collections</h1>
         <form
-          className="mt-6"
+          className="mt-8"
           onSubmit={(event) => {
             event.preventDefault()
             const term = query.trim()
@@ -137,44 +226,93 @@ export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
           className="mt-2 inline-flex min-h-11 items-center gap-2 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
         >
           <span className={typography.footerTitle}>Recherche avancée</span>
-          <span aria-hidden className="text-[rgb(var(--color-action))]">
-            ↗
-          </span>
+          <span aria-hidden>↗</span>
           <span className="sr-only">, nouvel onglet</span>
         </a>
       </section>
 
-      <section className="flex flex-col gap-6 px-4 pb-6 pt-6">
+      <section className="flex flex-col gap-4">
         <h2 className={typography.heading}>À la une</h2>
-        <CollectionCard item={COLLECTIONS_LEAD} featured />
+        <Link to={PRESENTATION_ARTICLE_PATH} className={`flex w-full flex-col gap-4 text-left ${focusRing}`}>
+          <img src={COLLECTIONS_LEAD.image} alt="" className="h-[200px] w-full object-cover" />
+          <span className="flex flex-col gap-2">
+            <span className={typography.cardTitle}>{COLLECTIONS_LEAD.title}</span>
+            <span className={`${typography.uiCategory} text-[rgb(var(--color-accent-clay))]`}>Article</span>
+          </span>
+        </Link>
       </section>
 
-      {COLLECTIONS_RAILS.map((rail, index) => (
-        <section
-          key={rail.title}
-          className={`flex flex-col gap-6 px-4 pt-4 ${index === COLLECTIONS_RAILS.length - 1 ? 'pb-16' : 'pb-6'}`}
-        >
-          <div className="flex items-center justify-between">
-            <h2 className={typography.heading}>{rail.title}</h2>
-            <SliderArrows
-              label={rail.title}
-              onPrev={() => scrollRow(railRefs.current[index], -1)}
-              onNext={() => scrollRow(railRefs.current[index], 1)}
-            />
-          </div>
-          <div
-            ref={(node) => {
-              railRefs.current[index] = node
-            }}
-            data-h-scroller="true"
-            className="scrollbar-hidden -mr-4 flex gap-4 overflow-x-auto"
-          >
-            {rail.items.map((item) => (
-              <CollectionCard key={item.slug} item={item} />
-            ))}
-          </div>
-        </section>
+      <section className="flex flex-col gap-4">
+        <h2 className={typography.heading}>Documents remarquables</h2>
+        <div className="flex flex-col">
+          {DOCUMENTS_REMARQUABLES.map((item) => (
+            <a
+              key={item.title}
+              href={item.href}
+              onClick={holdPlaceholder}
+              className={`flex items-start gap-3 border-t border-[rgb(var(--color-border-on-dark))] py-4 text-left first:border-t-0 first:pt-0 last:pb-0 ${focusRing}`}
+            >
+              <img src={item.image} alt="" className="size-20 shrink-0 object-cover" />
+              <span className="min-w-0 flex-1">
+                <span className={`${typography.cardTitleCompact} block`}>{item.title}</span>
+                <span className={`${typography.uiCategory} mt-2 block text-[rgb(var(--color-accent-clay))]`}>
+                  {item.collection}
+                </span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <CardRail title="Collections phares" items={COLLECTIONS_PHARES} />
+
+      {COLLECTION_THEMES.map((theme) => (
+        <CardRail key={theme.title} title={theme.title} items={theme.items} />
       ))}
+
+      <CardRail title="En images" items={EN_IMAGES} />
+
+      <section>
+        <div className="border border-[rgb(var(--color-border-on-dark))] p-4">
+          <h2 className={typography.heading}>
+            <button
+              type="button"
+              aria-expanded={fondsOpen}
+              aria-controls={fondsId}
+              onClick={() => setFondsOpen((open) => !open)}
+              className={`flex w-full items-center gap-4 text-left ${focusRing}`}
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block">Autres fonds d'archives</span>
+                <span className={`${typography.editorialSecondary} mt-2 block`}>
+                  {FONDS_ARCHIVES.length} fonds conservés par des partenaires
+                </span>
+              </span>
+              <PlusMark
+                className={`size-6 shrink-0 text-[rgb(var(--color-accent-sand))] ${fondsOpen ? 'rotate-45' : ''}`}
+              />
+            </button>
+          </h2>
+          {fondsOpen ? (
+            <ul id={fondsId} className="mt-4">
+              {FONDS_ARCHIVES.map((name) => (
+                <li key={name} className="border-t border-[rgb(var(--color-border-on-dark))]">
+                  <a
+                    href="#"
+                    onClick={holdPlaceholder}
+                    className={`flex min-h-12 items-center py-3 ${typography.footerTitle} ${focusRing}`}
+                  >
+                    {name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      </section>
+
+      <YoutubeBand />
+      </div>
 
       <SiteFooter go={go} />
     </div>

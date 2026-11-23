@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import introCadre from '@/assets/home/intro-cadre.jpg'
 import introCulture from '@/assets/home/intro-culture.png'
@@ -8,7 +9,9 @@ import introLitterature from '@/assets/home/intro-litterature.jpg'
 import introMusiques from '@/assets/home/intro-musiques.jpg'
 import feteVisual from '@/assets/home/une-b.png'
 import { CollectionsShowcase } from '@/components/features/CollectionsShowcase'
+import { FiguresIndex } from '@/components/features/FiguresIndex'
 import { SiteFooter, SiteHeader, SliderArrows } from '@/components/features/HomeView'
+import { filtrePath } from '@/data/editorialArticle'
 import type { EspaceKey, Screen } from '@/lib/prototypeRoutes'
 import { typography } from '@/styles/typography'
 
@@ -36,6 +39,8 @@ type EspacePage = {
   introCrop?: { width: string; height: string; left: string; top: string }
   cardImage: string
   collections: string
+  /** Titre de l’article à la une. Absent : le lorem partagé des espaces. */
+  leadTitle?: string
   rails: Rail[]
 }
 
@@ -113,14 +118,32 @@ const PAGES: Partial<Record<EspaceKey, EspacePage>> = {
   },
   portraits: {
     title: "Figures d'oc",
-    themes: [],
-    leadTag: '',
+    themes: ['Poètes', 'Musiciens', 'Militants', 'Conteurs'],
+    leadTag: 'Poètes',
+    leadTitle: 'Portrait d’Alba Bonet',
     intro: introFigures,
     introOpacity: '0.08',
     introCrop: { width: '100%', height: '437.2%', left: '0%', top: '-47.58%' },
     cardImage: introFigures,
     collections: 'Parcours, portraits, engagements',
-    rails: [plainRail('Figures historiques'), plainRail("Créateurs d'aujourd'hui")],
+    rails: [
+      {
+        title: 'Figures historiques',
+        cards: [
+          { title: 'Portrait d’Alba Bonet', tag: 'Poètes' },
+          { title: 'Portrait de Clara Martel', tag: 'Musiciens' },
+          { title: 'Portrait de Jeanne Rivel', tag: 'Militants' },
+        ],
+      },
+      {
+        title: "Créateurs d'aujourd'hui",
+        cards: [
+          { title: 'Portrait de Bernat Brana', tag: 'Conteurs' },
+          { title: 'Portrait de Martin Moral', tag: 'Poètes' },
+          { title: 'Portrait de Lise Vental', tag: 'Musiciens' },
+        ],
+      },
+    ],
   },
   musique: {
     title: 'Musiques',
@@ -169,6 +192,50 @@ const PAGES: Partial<Record<EspaceKey, EspacePage>> = {
   },
 }
 
+const LOREM_TITLES = [
+  'Lorem ipsum dolor sit amet',
+  'Consectetur adipiscing elit sed',
+  'Eiusmod tempor incididunt ut labore',
+  'Ut enim ad minim veniam quis',
+  'Nostrud exercitation ullamco laboris',
+  'Duis aute irure dolor reprehenderit',
+  'Excepteur sint occaecat cupidatat',
+  'Sunt in culpa qui officia deserunt',
+]
+
+/** Huit articles par tag, pour essayer les listes. Les carrousels restent une sélection courte. */
+function articlesFor(themes: string[], rails: Rail[], perTag = 8) {
+  const listed = rails.flatMap((rail) => rail.cards).filter((card) => card.tag && themes.includes(card.tag))
+  for (const tag of themes) {
+    const titles = new Set(listed.filter((card) => card.tag === tag).map((card) => card.title))
+    for (const title of LOREM_TITLES) {
+      if (titles.size >= perTag) break
+      if (titles.has(title)) continue
+      titles.add(title)
+      listed.push({ title, tag })
+    }
+  }
+  return listed
+}
+
+const ARTICLES: Partial<Record<EspaceKey, Array<{ title: string; tag: string }>>> = Object.fromEntries(
+  (Object.entries(PAGES) as Array<[EspaceKey, EspacePage]>).map(([key, page]) => [
+    key,
+    articlesFor(page.themes, page.rails),
+  ]),
+)
+
+/** Articles du même espace qui portent l’un des tags, dans l’ordre des tags puis des listes. */
+export function articlesSharingTags(espace: EspaceKey, tags: string[]) {
+  const wanted = new Set(tags)
+  const seen = new Set<string>()
+  return (ARTICLES[espace] ?? []).filter((card) => {
+    if (!wanted.has(card.tag) || seen.has(card.title)) return false
+    seen.add(card.title)
+    return true
+  })
+}
+
 const DRESSED_KEYS = ['fetes', 'langue', 'portraits', 'musique', 'histoires', 'cadre'] as const
 export type DressedEspace = (typeof DRESSED_KEYS)[number]
 
@@ -193,19 +260,37 @@ export function EspacePageView({
   filtre?: string | null
 }) {
   const page = PAGES[espace]!
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
   const railRefs = useRef<Array<HTMLDivElement | null>>([])
-  const [theme, setTheme] = useState<string | null>(filtre && page.themes.includes(filtre) ? filtre : null)
-  const rails = page.rails
-    .map((rail) => ({
-      ...rail,
-      cards: theme ? rail.cards.filter((card) => card.tag === theme) : rail.cards,
-    }))
-    .filter((rail) => rail.cards.length > 0)
+  const pillsRef = useRef<HTMLDivElement | null>(null)
+  const theme = filtre && page.themes.includes(filtre) ? filtre : null
+  const tagged = theme ? (ARTICLES[espace] ?? []).filter((card) => card.tag === theme) : []
+
+  function selectTheme(item: string) {
+    navigate(theme === item ? pathname : filtrePath(pathname, item))
+  }
 
   useEffect(() => {
     railRefs.current.forEach((row) => {
       if (row) row.scrollLeft = 0
     })
+  }, [theme])
+
+  useLayoutEffect(() => {
+    const row = pillsRef.current
+    if (!row) return
+    const pill = theme ? row.querySelector<HTMLElement>('[aria-pressed="true"]') : null
+    if (!pill) {
+      row.scrollLeft = 0
+      return
+    }
+    const rowBox = row.getBoundingClientRect()
+    const scale = rowBox.width / row.clientWidth || 1
+    const delta = (pill.getBoundingClientRect().left - rowBox.left) / scale
+    const target = row.scrollLeft + delta - (row.clientWidth - pill.offsetWidth) / 2
+    const max = row.scrollWidth - row.clientWidth
+    row.scrollLeft = Math.min(Math.max(0, target), Math.max(0, max))
   }, [theme])
 
   return (
@@ -244,26 +329,32 @@ export function EspacePageView({
         </div>
       </section>
 
-      <section className="flex flex-col gap-6 px-4 pb-6 pt-6">
-        <h2 className={typography.heading}>À la une</h2>
-        <button
-          type="button"
-          onClick={() => onOpenGabarit(espace)}
-          className="flex w-full flex-col gap-4 text-left"
-        >
-          <img src={page.cardImage} alt="" className="h-[200px] w-full object-cover" />
-          <span className="flex flex-col gap-2">
-            <span className={typography.cardTitle}>{LEAD_TITLE}</span>
-            <span className={`${typography.editorialLead} text-[rgb(var(--color-text-secondary))]`}>{LEAD_CHAPO}</span>
-            {page.leadTag ? (
-              <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]`}>{page.leadTag}</span>
-            ) : null}
-          </span>
-        </button>
-      </section>
+      {theme ? null : (
+        <section className="flex flex-col gap-6 px-4 pb-6 pt-6">
+          <h2 className={typography.heading}>À la une</h2>
+          <button
+            type="button"
+            onClick={() => onOpenGabarit(espace)}
+            className="flex w-full flex-col gap-4 text-left"
+          >
+            <img src={page.cardImage} alt="" className="h-[200px] w-full object-cover" />
+            <span className="flex flex-col gap-2">
+              <span className={typography.cardTitle}>{page.leadTitle ?? LEAD_TITLE}</span>
+              <span className={`${typography.editorialLead} text-[rgb(var(--color-text-secondary))]`}>{LEAD_CHAPO}</span>
+              {page.leadTag ? (
+                <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]`}>{page.leadTag}</span>
+              ) : null}
+            </span>
+          </button>
+        </section>
+      )}
 
       {page.themes.length > 0 ? (
-        <div data-h-scroller="true" className="scrollbar-hidden flex gap-2 overflow-x-auto px-4 pt-6">
+        <div
+          ref={pillsRef}
+          data-h-scroller="true"
+          className="scrollbar-hidden flex gap-2 overflow-x-auto px-4 pt-6"
+        >
           {page.themes.map((item) => {
             const active = theme === item
             return (
@@ -271,7 +362,7 @@ export function EspacePageView({
                 key={item}
                 type="button"
                 aria-pressed={active}
-                onClick={() => setTheme(active ? null : item)}
+                onClick={() => selectTheme(item)}
                 className={`${typography.uiLabel} shrink-0 rounded-pill px-3 py-2 ${
                   active
                     ? 'bg-action text-[rgb(var(--color-action-content))]'
@@ -285,7 +376,28 @@ export function EspacePageView({
         </div>
       ) : null}
 
-      {rails.map((rail, index) => (
+      {theme ? (
+        tagged.length > 0 ? (
+          <ul className="grid grid-cols-2 gap-x-2 gap-y-6 px-4 pb-8 pt-6">
+            {tagged.map((card) => (
+              <li key={card.title}>
+                <button
+                  type="button"
+                  onClick={() => onOpenGabarit(espace)}
+                  className="flex w-full flex-col gap-3 text-left"
+                >
+                  <img src={page.cardImage} alt="" className="aspect-video w-full object-cover" />
+                  <span className={`${typography.cardTitleCompact} line-clamp-3`}>{card.title}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={`${typography.uiCaption} px-4 py-8 text-[rgb(var(--color-text-secondary))]`}>
+            Aucun article pour l’instant.
+          </p>
+        )
+      ) : page.rails.map((rail, index) => (
         <section key={rail.title} className="flex flex-col gap-6 px-4 pb-6 pt-4">
           <div className="flex items-center justify-between">
             <h2 className={typography.heading}>{rail.title}</h2>
@@ -324,9 +436,15 @@ export function EspacePageView({
         </section>
       ))}
 
-      <section className="px-4 py-6">
-        <CollectionsShowcase caption={page.collections} onOpen={() => go('collections')} />
-      </section>
+      {theme || espace !== 'portraits' ? null : (
+        <FiguresIndex onOpen={() => onOpenGabarit(espace)} />
+      )}
+
+      {theme ? null : (
+        <section className="px-4 py-6">
+          <CollectionsShowcase caption={page.collections} onOpen={() => go('collections')} />
+        </section>
+      )}
 
       <SiteFooter go={go} />
     </div>

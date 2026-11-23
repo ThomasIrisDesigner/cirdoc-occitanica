@@ -32,6 +32,8 @@
   --color-focus: 184 58 38; /* focus/ring */
   --color-icon: 34 33 32; /* icon/default */
   --color-border: 232 220 196; /* border/subtle */
+  /* Même écart que border/subtle sur le fond crème, posé sur le fond collections. */
+  --color-border-on-dark: 48 46 43;
   --color-border-strong: 138 121 101; /* border/control #8a7965 */
   --color-accent-sand: 226 194 149; /* accent/sand #e2c295 */
   --color-accent-clay: 212 155 133; /* accent/clay #d49b85 */
@@ -41,6 +43,7 @@
   --color-pagination: 232 220 196; /* pagination/inactive */
   --color-footer: 120 39 25; /* footer/background #782719 */
   --color-collections: 34 33 32; /* neutral/950 #222120 */
+  --color-collections-deep: 22 21 20; /* cadre posé sur le fond collections */
 
   --radius-control: 4px;
   --radius-card: 12px;

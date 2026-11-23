@@ -13,13 +13,15 @@ import uneB from '@/assets/home/une-b.png'
 import uneC from '@/assets/home/une-c.png'
 import uneD from '@/assets/home/une-d.png'
 import vivaB from '@/assets/home/viva-b.png'
+import ytFrancois from '@/assets/collections/yt-francois.jpg'
+import ytKaufmann from '@/assets/collections/yt-kaufmann.jpg'
+import ytMarchand from '@/assets/collections/yt-marchand.jpg'
+import ytMarti from '@/assets/collections/yt-marti.jpg'
 
-/**
- * Recherche YouTube en attendant l’adresse de la chaîne du CIRDOC.
- * Les cartes du rail Vidéos pointent toutes ici.
- */
-export const CIRDOC_YOUTUBE =
-  'https://www.youtube.com/results?search_query=CIRDOC+Institut+occitan+de+cultura'
+/** Chaîne CIRDOC – Institut occitan de cultura. */
+export const CIRDOC_YOUTUBE = 'https://www.youtube.com/@cirdoc-institut-occitan'
+
+export const YOUTUBE_FRAMES = [ytKaufmann, ytMarti, ytMarchand, ytFrancois]
 
 /** Page intermédiaire, résultats Gallica, ou archive externe. */
 export type CollectionDestination = 'editorial' | 'gallica' | 'external'
@@ -50,151 +52,121 @@ export const COLLECTIONS_LEAD: CollectionItem = {
   article: true,
 }
 
-const CULTURE_VIVANTE: CollectionItem = {
-  slug: 'culture-vivante',
-  title: 'Culture vivante',
-  count: '987',
-  image: uneB,
-  destination: 'editorial',
-  query: 'Culture vivante',
+const PHOTOS = [uneB, uneC, uneD, col1, col2, col3, col4, col5, col6, col7, col8, col9, introMusiques, vivaB]
+let photoCursor = 0
+
+function nextPhoto() {
+  const image = PHOTOS[photoCursor % PHOTOS.length]
+  photoCursor += 1
+  return image
 }
 
-export const COLLECTIONS_RAILS: Array<{ title: string; items: CollectionItem[] }> = [
+/** Chiffres fictifs, en attendant les effectifs réels. */
+function documents(count: number) {
+  const formatted = new Intl.NumberFormat('fr-FR').format(count).replace(/\s/g, '\u00a0')
+  return `${formatted} documents`
+}
+
+export type RemarkableDocument = {
+  title: string
+  collection: string
+  image: string
+  href: '#'
+}
+
+export type CollectionCard = {
+  title: string
+  documents: string
+  image: string
+  href: '#'
+}
+
+export type ImageCollection = {
+  title: string
+  description: string
+  image: string
+  href: '#'
+}
+
+export const DOCUMENTS_REMARQUABLES: RemarkableDocument[] = [
+  { title: 'Affiche du 1er festival de Pau, 1964', collection: "À l'affiche !", image: nextPhoto(), href: '#' },
+  { title: 'Manuscrit de troubadour, XIIe siècle', collection: 'Troubadours', image: nextPhoto(), href: '#' },
+  { title: 'Enregistrement Félix Arnaudin, 1897', collection: 'Archives orales', image: nextPhoto(), href: '#' },
+]
+
+export const COLLECTIONS_PHARES: CollectionCard[] = [
+  { title: 'Lutte du Larzac', documents: '342 documents', image: nextPhoto(), href: '#' },
+  { title: 'Nòva Cançon', documents: '218 documents', image: nextPhoto(), href: '#' },
+  { title: 'Carnaval', documents: '156 documents', image: nextPhoto(), href: '#' },
+  { title: 'Militantisme', documents: '487 documents', image: nextPhoto(), href: '#' },
+]
+
+function themeCard(title: string, count: number): CollectionCard {
+  return { title, documents: documents(count), image: nextPhoto(), href: '#' }
+}
+
+export const COLLECTION_THEMES: Array<{ title: string; items: CollectionCard[] }> = [
   {
-    title: 'Par thématique',
+    title: 'Langue et littérature',
     items: [
-      CULTURE_VIVANTE,
-      {
-        slug: 'litterature',
-        title: 'Littérature',
-        count: '3\u00a0241',
-        image: col1,
-        destination: 'gallica',
-        query: 'Littérature',
-      },
-      {
-        slug: 'figures-oc',
-        title: "Figures d'oc",
-        count: '2\u00a0134',
-        image: col2,
-        destination: 'editorial',
-        query: "Figures d'oc",
-      },
-      {
-        slug: 'musiques',
-        title: 'Musiques',
-        count: '1\u00a0876',
-        image: col3,
-        destination: 'gallica',
-        query: 'Musiques',
-      },
-      {
-        slug: 'histoires',
-        title: 'Histoires de…',
-        count: '640',
-        image: col4,
-        destination: 'editorial',
-        query: 'Histoires',
-      },
-      {
-        slug: 'plein-cadre',
-        title: 'Plein cadre',
-        count: '418',
-        image: col5,
-        destination: 'gallica',
-        query: 'Plein cadre',
-      },
+      themeCard('Troubadours', 186),
+      themeCard('Concours de langue romane', 74),
+      themeCard('Dictionnaires, lexiques et glossaires', 129),
+      themeCard('Grammaires', 63),
+      themeCard('Des contes et des fables', 210),
+      themeCard('Théâtre occitan', 98),
+      themeCard('Textes sacrés', 41),
     ],
   },
   {
-    title: 'Par territoire',
+    title: 'Mémoires et société',
     items: [
-      {
-        slug: 'gascogne',
-        title: 'Gascogne',
-        count: '1\u00a0240',
-        image: col6,
-        destination: 'editorial',
-        query: 'Gascogne',
-      },
-      {
-        slug: 'languedoc',
-        title: 'Languedoc',
-        count: '2\u00a0180',
-        image: col7,
-        destination: 'gallica',
-        query: 'Languedoc',
-      },
-      {
-        slug: 'pyrenees',
-        title: 'Pyrénées',
-        count: '890',
-        image: col8,
-        destination: 'gallica',
-        query: 'Pyrénées',
-      },
-      {
-        slug: 'provence',
-        title: 'Provence',
-        count: '760',
-        image: col9,
-        destination: 'editorial',
-        query: 'Provence',
-      },
+      themeCard('Militantisme', 487),
+      themeCard('Lutte du Larzac', 342),
+      themeCard('Crise viticole de 1907', 88),
+      themeCard('Première Guerre mondiale', 203),
+      themeCard('Journaux de guerre', 67),
+      themeCard('Archives orales', 312),
     ],
   },
   {
-    title: 'Vidéos',
+    title: 'Musique et culture vivante',
     items: [
-      {
-        slug: 'videos-entretiens',
-        title: 'Entretiens',
-        count: '',
-        meta: 'YouTube',
-        image: uneC,
-        destination: 'external',
-        query: 'Entretiens',
-        href: CIRDOC_YOUTUBE,
-      },
-      {
-        slug: 'videos-collectage',
-        title: 'Collectage',
-        count: '',
-        meta: 'YouTube',
-        image: introMusiques,
-        destination: 'external',
-        query: 'Collectage',
-        href: CIRDOC_YOUTUBE,
-      },
-      {
-        slug: 'videos-documentaires',
-        title: 'Documentaires',
-        count: '',
-        meta: 'YouTube',
-        image: uneD,
-        destination: 'external',
-        query: 'Documentaires',
-        href: CIRDOC_YOUTUBE,
-      },
-      {
-        slug: 'videos-50-ans',
-        title: '50 ans',
-        count: '',
-        meta: 'YouTube',
-        image: vivaB,
-        destination: 'external',
-        query: '50 ans',
-        href: CIRDOC_YOUTUBE,
-      },
+      themeCard('Nòva Cançon', 218),
+      themeCard('Chansons et partitions', 540),
+      themeCard('Radios occitanes', 126),
+      themeCard('Archives chantées', 274),
+      themeCard('Carnaval', 156),
+      themeCard('Nadal', 49),
+      themeCard('Gastronomie', 183),
+      themeCard('Sports et jeux', 72),
+    ],
+  },
+  {
+    title: 'Presse et publications',
+    items: [
+      themeCard('Presse occitane', 890),
+      themeCard('Presse félibréenne', 146),
+      themeCard('Almanachs', 58),
     ],
   },
 ]
 
-const COLLECTIONS_BY_SLUG = new Map(
-  [COLLECTIONS_LEAD, ...COLLECTIONS_RAILS.flatMap((rail) => rail.items)]
-    .filter((item) => item.destination === 'editorial')
-    .map((item) => [item.slug, item]),
-)
+export const EN_IMAGES: ImageCollection[] = [
+  { title: "À l'affiche !", description: 'Affiches militantes et culturelles', image: nextPhoto(), href: '#' },
+  { title: 'Tracts et éphémères', description: 'Documents imprimés du mouvement occitan', image: nextPhoto(), href: '#' },
+  { title: 'Cinéma et archives filmées', description: 'Films et documentaires', image: nextPhoto(), href: '#' },
+  { title: 'Lutte du Larzac — Affiches', description: 'Sous-collection affiches du Larzac', image: nextPhoto(), href: '#' },
+]
+
+export const FONDS_ARCHIVES = [
+  'Société archéologique de Béziers',
+  'Fonds Junior Sans',
+  "Fonds Ràdio Lenga d'Òc",
+  'Fonds [nom radio à compléter]',
+]
+
+const COLLECTIONS_BY_SLUG = new Map([[COLLECTIONS_LEAD.slug, COLLECTIONS_LEAD]])
 
 export function getCollection(slug: string): CollectionItem | undefined {
   return COLLECTIONS_BY_SLUG.get(slug)

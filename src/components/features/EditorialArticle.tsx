@@ -1,36 +1,94 @@
-import * as React from 'react'
-import type { ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 
-import { GascogneMap } from '@/components/features/GascogneMap'
+import uneA from '@/assets/home/une-a.png'
+import uneB from '@/assets/home/une-b.png'
+import uneC from '@/assets/home/une-c.png'
+import uneD from '@/assets/home/une-d.png'
+import filetLine from '@/assets/article/filet-line.svg'
+import filetMark from '@/assets/article/filet-mark.svg'
+import playIcon from '@/assets/article/play.svg'
+import plusIcon from '@/assets/article/plus.svg'
+import { articlesSharingTags } from '@/components/features/EspacePageView'
+import { SiteFooter, SiteHeader, SliderArrows } from '@/components/features/HomeView'
 import {
   EDITORIAL_ARTICLE,
+  gabaritPath,
   type EditorialArticleContent,
   type EditorialBlock,
 } from '@/data/editorialArticle'
-import type { Screen } from '@/lib/prototypeRoutes'
+import type { EspaceKey, Screen } from '@/lib/prototypeRoutes'
 import { typography } from '@/styles/typography'
 
 export type Crumb = { label: string; to?: string }
 
+type Suggestion = NonNullable<EditorialArticleContent['lireAussi']>
+
+type AroundItem = {
+  title: string
+  label: string
+  open: () => void
+}
+
 type EditorialArticleProps = {
-  header: ReactNode
   onNavigate: (screen: Screen) => void
   onPath: (path: string) => void
   crumbs: Crumb[]
   article?: EditorialArticleContent
 }
 
-function Visuel({ className }: { className?: string }) {
+const RELATED_IMAGES = [uneB, uneA, uneD, uneC]
+
+const SPACE_NAME: Record<EspaceKey, string> = {
+  fetes: 'Culture vivante',
+  langue: 'Littérature',
+  portraits: "Figures d'oc",
+  musique: 'Musiques',
+  scene: 'La Scène occitane',
+  histoires: 'Histoires de…',
+  cadre: 'Plein cadre',
+}
+
+const focusRing =
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]'
+
+function scrollRow(row: HTMLDivElement | null, direction: -1 | 1) {
+  if (!row) return
+  row.scrollBy({ left: direction * Math.round(row.clientWidth * 0.72), behavior: 'smooth' })
+}
+
+function authorLine(author: string) {
+  const comma = author.indexOf(',')
+  if (comma < 0) return `Par ${author}`
+  return `Par ${author.slice(0, comma).trim()} — ${author.slice(comma + 1).trim()}`
+}
+
+function suggestionSpace(screen: Screen) {
+  if (screen === 'article') return SPACE_NAME.musique
+  if (screen.startsWith('espace-')) {
+    const key = screen.slice('espace-'.length) as EspaceKey
+    return SPACE_NAME[key] ?? ''
+  }
+  return ''
+}
+
+function groupChapters(blocks: EditorialBlock[]) {
+  const groups: EditorialBlock[][] = []
+  let current: EditorialBlock[] = []
+  for (const block of blocks) {
+    if (block.type === 'heading' && current.length > 0) {
+      groups.push(current)
+      current = []
+    }
+    current.push(block)
+  }
+  if (current.length > 0) groups.push(current)
+  return groups
+}
+
+function Visuel() {
   return (
-    <div
-      className={[
-        'flex items-center justify-center bg-[rgb(var(--occ-dark))]',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      <span className="text-[10px] italic text-[rgb(var(--occ-gray))]">Visuel</span>
+    <div className="flex h-full w-full items-center justify-center bg-[rgb(var(--color-text))]">
+      <span className={`${typography.uiCaption} text-[rgb(var(--color-text-secondary))]`}>Visuel</span>
     </div>
   )
 }
@@ -38,57 +96,118 @@ function Visuel({ className }: { className?: string }) {
 function Photo({
   src,
   alt,
-  className,
   position,
 }: {
   src?: string
   alt: string
-  className?: string
   position?: string
 }) {
-  if (!src) return <Visuel className={className} />
+  if (!src) return <Visuel />
   return (
     <img
       src={src}
       alt={alt}
-      className={['h-full w-full object-cover', position, className].filter(Boolean).join(' ')}
+      className={['h-full w-full object-cover', position].filter(Boolean).join(' ')}
     />
   )
 }
 
 function Legend({ caption, credit }: { caption: string; credit?: string }) {
   return (
-    <figcaption className="border-l border-[rgb(var(--occ-dark))] py-1 pl-[17px] pr-4">
-      <p className={typography.editorialCaption}>{caption}</p>
-      {credit ? <p className={`${typography.editorialCredit} pt-2`}>{credit}</p> : null}
+    <figcaption className="border-l border-[rgb(var(--color-border))] py-1 pl-[17px] pr-4">
+      <p className={typography.uiCaption}>{caption}</p>
+      {credit ? (
+        <p className={`${typography.uiCredit} uppercase text-[rgb(var(--color-text-secondary))]`}>
+          {credit}
+        </p>
+      ) : null}
     </figcaption>
   )
 }
 
-function Byline({ author }: { author: string }) {
-  const comma = author.indexOf(',')
-  const name = (comma >= 0 ? author.slice(0, comma) : author).trim()
-  const role = comma >= 0 ? author.slice(comma + 1).trim() : null
-
+function ArticleClose() {
   return (
-    <p className={typography.editorialByline}>
-      Par <span className="font-semibold">{name}</span>
-      {role ? <span className="font-normal"> - {role}</span> : null}
-    </p>
+    <div className="flex items-center justify-center gap-2 p-6" aria-hidden>
+      <img src={filetLine} alt="" className="block h-[4px] min-w-0 flex-1" />
+      <img src={filetMark} alt="" className="block h-[14.833px] w-[20px] shrink-0" />
+      <img src={filetLine} alt="" className="block h-[4px] min-w-0 flex-1" />
+    </div>
   )
 }
 
-function VideoBlock({
-  block,
+function QuoteMark() {
+  return (
+    <svg viewBox="8 0 50 38.5" className="h-[39px] w-[50px] shrink-0 text-[rgb(var(--color-text-brand))]" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M18.5183 38.4146C16.9939 38.4146 15.4695 38.1098 13.9451 37.5C12.5224 36.8902 11.2012 36.0264 9.98171 34.9085C9.37195 33.4858 8.86382 32.063 8.45732 30.6402C8.15244 29.1159 8 27.5915 8 26.0671C8 21.2907 8.91463 17.2256 10.7439 13.8719C12.6748 10.4167 15.1646 7.57113 18.2134 5.33536C21.2622 2.99796 24.4634 1.21951 27.8171 0L29.3415 3.35365C26.8008 4.67479 24.6159 5.99593 22.7866 7.31707C20.9573 8.53658 19.4329 10.0102 18.2134 11.7378C16.9939 13.4654 15.8252 15.7012 14.7073 18.4451L13.9451 14.1768L22.0244 18.75C24.3618 19.9695 26.0386 21.4939 27.0549 23.3232C28.0711 25.0508 28.5793 26.7276 28.5793 28.3537C28.5793 31.1992 27.6138 33.5874 25.6829 35.5183C23.8537 37.4492 21.4654 38.4146 18.5183 38.4146ZM47.1768 38.4146C45.6524 38.4146 44.128 38.1098 42.6037 37.5C41.1809 36.8902 39.8598 36.0264 38.6402 34.9085C38.0305 33.4858 37.5224 32.063 37.1159 30.6402C36.811 29.1159 36.6585 27.5915 36.6585 26.0671C36.6585 21.2907 37.5732 17.2256 39.4024 13.8719C41.3333 10.4167 43.8232 7.57113 46.872 5.33536C49.9207 2.99796 53.122 1.21951 56.4756 0L58 3.35365C55.4594 4.67479 53.2744 5.99593 51.4451 7.31707C49.6159 8.53658 48.0915 10.0102 46.872 11.7378C45.6524 13.4654 44.4837 15.7012 43.3659 18.4451L42.6037 14.1768L50.6829 18.75C53.0203 19.9695 54.6972 21.4939 55.7134 23.3232C56.7297 25.0508 57.2378 26.7276 57.2378 28.3537C57.2378 31.1992 56.2724 33.5874 54.3415 35.5183C52.5122 37.4492 50.124 38.4146 47.1768 38.4146Z"
+      />
+    </svg>
+  )
+}
+
+function Quote({ text, attribution }: { text: string; attribution: string }) {
+  return (
+    <figure className="flex flex-col gap-3 py-6">
+      <QuoteMark />
+      <blockquote className={`${typography.pullQuote} text-[rgb(var(--color-text-brand))]`}>
+        {text}
+      </blockquote>
+      <figcaption className={`${typography.uiCaption} text-[rgb(var(--color-text-secondary))]`}>
+        {attribution}
+      </figcaption>
+    </figure>
+  )
+}
+
+function FigureFrame({
+  children,
+  caption,
+  credit,
 }: {
-  block: Extract<EditorialBlock, { type: 'video' }>
+  children: ReactNode
+  caption: string
+  credit?: string
 }) {
-  const [playing, setPlaying] = React.useState(false)
+  return (
+    <figure className="flex flex-col gap-2">
+      {children}
+      <Legend caption={caption} credit={credit} />
+    </figure>
+  )
+}
+
+function PairBlock({ block }: { block: Extract<EditorialBlock, { type: 'pair' }> }) {
+  const same = Boolean(block.leftSrc && block.rightSrc && block.leftSrc === block.rightSrc)
+  const single = !block.leftSrc || !block.rightSrc || same
+
+  return (
+    <FigureFrame caption={block.caption} credit={block.credit}>
+      {single ? (
+        <div className="h-[294px] overflow-hidden bg-[rgb(var(--color-text))]">
+          <Photo src={block.leftSrc ?? block.rightSrc} alt="" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          <div className="h-[294px] overflow-hidden bg-[rgb(var(--color-text))]">
+            <Photo src={block.leftSrc} alt="" position="object-left" />
+          </div>
+          <div className="h-[294px] overflow-hidden bg-[rgb(var(--color-text))]">
+            <Photo src={block.rightSrc} alt="" position="object-right" />
+          </div>
+        </div>
+      )}
+    </FigureFrame>
+  )
+}
+
+function VideoBlock({ block }: { block: Extract<EditorialBlock, { type: 'video' }> }) {
+  const [playing, setPlaying] = useState(false)
   const src = `${block.embedSrc}${block.embedSrc.includes('?') ? '&' : '?'}autoplay=1`
 
   return (
-    <figure className="flex flex-col gap-2">
-      <div className="relative aspect-[310/174] overflow-hidden bg-[rgb(var(--occ-dark))]">
+    <FigureFrame caption={block.caption} credit={block.credit}>
+      <div className="relative h-[192px] overflow-hidden bg-[rgb(var(--color-text))]">
         {playing ? (
           <iframe
             src={src}
@@ -101,29 +220,24 @@ function VideoBlock({
           <button
             type="button"
             onClick={() => setPlaying(true)}
-            className="relative h-full w-full"
+            className={`relative h-full w-full ${focusRing}`}
             aria-label={`Lire la vidéo : ${block.title}`}
           >
-            <Photo src={block.posterSrc} alt="" className="absolute inset-0" />
-            <span className="absolute inset-0 flex items-center justify-center">
-              <span className="flex h-7 w-11 items-center justify-center rounded-md bg-[rgb(var(--color-danger))]">
-                <span className="ml-0.5 h-0 w-0 border-y-[6px] border-l-[10px] border-y-transparent border-l-[rgb(var(--occ-white))]" />
-              </span>
+            <span className="absolute inset-0">
+              <Photo src={block.posterSrc} alt="" />
+            </span>
+            <span className="absolute inset-0 grid place-items-center">
+              <img src={playIcon} alt="" />
             </span>
           </button>
         )}
       </div>
-      <Legend caption={block.caption} credit={block.credit} />
-    </figure>
+    </FigureFrame>
   )
 }
 
-function CarouselBlock({
-  block,
-}: {
-  block: Extract<EditorialBlock, { type: 'carousel' }>
-}) {
-  const [index, setIndex] = React.useState(0)
+function CarouselBlock({ block }: { block: Extract<EditorialBlock, { type: 'carousel' }> }) {
+  const [index, setIndex] = useState(0)
   const count = block.slides.length
   const slide = block.slides[index]
 
@@ -132,9 +246,13 @@ function CarouselBlock({
   }
 
   return (
-    <figure className="flex flex-col gap-2">
-      <div className="relative aspect-[310/174] overflow-hidden bg-[rgb(var(--occ-dark))]">
-        <Photo src={slide.src} alt={slide.label} position={index === 1 ? 'object-[30%_center]' : index === 2 ? 'object-right' : 'object-left'} />
+    <FigureFrame caption={block.caption} credit={block.credit}>
+      <div className="relative h-[220px] overflow-hidden bg-[rgb(var(--color-text))]">
+        <Photo
+          src={slide.src}
+          alt={slide.label}
+          position={index === 1 ? 'object-[30%_center]' : index === 2 ? 'object-right' : 'object-left'}
+        />
         <div className="absolute inset-x-0 bottom-2 flex justify-center gap-2">
           {block.slides.map((item, i) => (
             <button
@@ -143,8 +261,8 @@ function CarouselBlock({
               aria-label={item.label}
               onClick={() => setIndex(i)}
               className={[
-                'h-2 w-2 rounded-full',
-                i === index ? 'bg-[rgb(var(--occ-white))]' : 'bg-[rgb(var(--occ-white))]/50',
+                'size-2 rounded-pill',
+                i === index ? 'bg-surface' : 'bg-surface/50',
               ].join(' ')}
             />
           ))}
@@ -153,7 +271,7 @@ function CarouselBlock({
           type="button"
           aria-label="Image précédente"
           onClick={() => go(index - 1)}
-          className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-[rgb(var(--occ-white))]/90 text-[rgb(var(--occ-dark))]"
+          className={`absolute left-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-pill bg-surface text-text ${focusRing}`}
         >
           ‹
         </button>
@@ -161,108 +279,156 @@ function CarouselBlock({
           type="button"
           aria-label="Image suivante"
           onClick={() => go(index + 1)}
-          className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-[rgb(var(--occ-white))]/90 text-[rgb(var(--occ-dark))]"
+          className={`absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-pill bg-surface text-text ${focusRing}`}
         >
           ›
         </button>
       </div>
-      <Legend caption={block.caption} credit={block.credit} />
-    </figure>
+    </FigureFrame>
   )
 }
 
-function BodyBlock({
-  block,
-  accent,
-  isFirstHeading,
-}: {
-  block: EditorialBlock
-  accent: string
-  isFirstHeading: boolean
-}) {
+function BodyBlock({ block }: { block: EditorialBlock }) {
   if (block.type === 'heading') {
-    return (
-      <h2 className={[typography.editorialHeading, isFirstHeading ? '' : 'pt-6'].join(' ')}>
-        {block.text}
-      </h2>
-    )
+    return <h2 className={typography.heading}>{block.text}</h2>
   }
 
   if (block.type === 'paragraph') {
-    return <p className={typography.editorialBody}>{block.text}</p>
+    return <p className={typography.reading}>{block.text}</p>
   }
 
   if (block.type === 'quote') {
-    return (
-      <figure
-        className="border-l bg-[rgb(var(--occ-light))] py-4 pl-[17px] pr-4"
-        style={{ borderColor: accent }}
-      >
-        <blockquote className={typography.editorialQuote}>{block.text}</blockquote>
-        <p className={`${typography.editorialCredit} pt-2`}>{block.attribution}</p>
-      </figure>
-    )
+    return <Quote text={block.text} attribution={block.attribution} />
   }
 
-  if (block.type === 'pair') {
-    return (
-      <figure className="flex flex-col gap-2">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="aspect-[3/4] overflow-hidden bg-[rgb(var(--occ-dark))]">
-            <Photo src={block.leftSrc} alt="" position="object-left" />
-          </div>
-          <div className="aspect-[3/4] overflow-hidden bg-[rgb(var(--occ-dark))]">
-            <Photo src={block.rightSrc} alt="" position="object-right" />
-          </div>
-        </div>
-        <Legend caption={block.caption} credit={block.credit} />
-      </figure>
-    )
-  }
-
+  if (block.type === 'pair') return <PairBlock block={block} />
   if (block.type === 'video') return <VideoBlock block={block} />
   if (block.type === 'carousel') return <CarouselBlock block={block} />
 
   return (
-    <figure className="flex flex-col gap-2">
-      <div className="aspect-[310/174] overflow-hidden bg-[rgb(var(--occ-dark))]">
+    <FigureFrame caption={block.caption} credit={block.credit}>
+      <div className="h-[294px] overflow-hidden bg-[rgb(var(--color-text))]">
         <Photo src={block.src} alt="" />
       </div>
-      <Legend caption={block.caption} credit={block.credit} />
-    </figure>
+    </FigureFrame>
+  )
+}
+
+function ReadAlso({ item, onOpen }: { item: Suggestion; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`flex w-full items-start gap-3 bg-[rgb(var(--color-background-warm))] text-left ${focusRing}`}
+    >
+      <img src={RELATED_IMAGES[0]} alt="" className="size-20 shrink-0 object-cover" />
+      <span className="flex min-w-0 flex-1 flex-col gap-1 py-4 pr-3">
+        <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]`}>À lire aussi</span>
+        <span className={typography.cardTitleCompact}>{item.title}</span>
+      </span>
+    </button>
+  )
+}
+
+function RelatedRail({ items }: { items: AroundItem[] }) {
+  const row = useRef<HTMLDivElement>(null)
+  if (items.length === 0) return null
+
+  return (
+    <section className="flex flex-col gap-6 bg-[rgb(var(--color-background-warm))] px-6 pb-10 pt-10">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className={typography.heading}>Autour de cet article</h2>
+        {items.length > 1 ? (
+          <SliderArrows
+            label="Autour de cet article"
+            onPrev={() => scrollRow(row.current, -1)}
+            onNext={() => scrollRow(row.current, 1)}
+          />
+        ) : null}
+      </div>
+      <div
+        ref={row}
+        data-h-scroller="true"
+        className="scrollbar-hidden -mr-6 flex gap-8 overflow-x-auto"
+      >
+        {items.map((item, index) => (
+          <button
+            key={item.title}
+            type="button"
+            onClick={item.open}
+            className={`flex w-60 shrink-0 flex-col gap-3 text-left ${focusRing}`}
+          >
+            <img
+              src={RELATED_IMAGES[index % RELATED_IMAGES.length]}
+              alt=""
+              className="h-60 w-full object-cover"
+            />
+            <span className="flex flex-col gap-2">
+              <span className={typography.cardTitleCompact}>{item.title}</span>
+              <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]`}>
+                {item.label}
+              </span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
   )
 }
 
 /**
- * Gabarit de lecture. Niveaux : H1 (titre), H2 (intertitres).
- * Échelle reprise de Yroise : Outfit pour l'UI, Source Serif 4 pour le corps.
+ * Gabarit de lecture habillé.
+ * H1 dans le bandeau crème, chapô sous l'image, modules du corps, tags, rebond.
  */
 export function EditorialArticle({
-  header,
   onNavigate,
   onPath,
   crumbs,
   article = EDITORIAL_ARTICLE,
 }: EditorialArticleProps) {
-  const accent = `rgb(var(${article.kickerColorVar}))`
-  let headingCount = 0
+  const [sourcesOpen, setSourcesOpen] = useState(false)
+  const chapters = groupChapters(article.blocks)
+  const anchor = article.blocks.findIndex((block) => block.type === 'pair' || block.type === 'figure')
+  const inline = anchor >= 0 ? article.lireAussi : undefined
+  const seen = new Set<string>([article.title, ...article.suggestions.map((item) => item.title)])
+  const around: AroundItem[] = [
+    ...article.suggestions.map((item) => ({
+      title: item.title,
+      label: suggestionSpace(item.screen),
+      open: () => onNavigate(item.screen),
+    })),
+    ...articlesSharingTags(
+      article.espace,
+      article.tags.map((tag) => tag.label),
+    )
+      .filter((card) => {
+        if (seen.has(card.title)) return false
+        seen.add(card.title)
+        return true
+      })
+      .map((card) => ({
+        title: card.title,
+        label: SPACE_NAME[article.espace] ?? '',
+        open: () => onPath(gabaritPath(article.espace)),
+      })),
+  ]
+  const footerTags = [...article.tags, ...(article.rebonds ?? [])]
+  let cursor = 0
 
   return (
-    <div className="min-h-[calc(100dvh-32px)] bg-[rgb(var(--occ-white))] text-[rgb(var(--occ-dark))]">
-      {header}
+    <div className="bg-surface text-text">
+      <div className="bg-[rgb(var(--color-background-warm))]">
+        <SiteHeader go={onNavigate} onLogo={() => onNavigate('home')} />
+      </div>
 
       <article>
-        <header className="px-5 pt-6">
+        <header className="flex flex-col gap-4 bg-[rgb(var(--color-surface-emphasis))] p-6">
           {crumbs.length > 0 ? (
-            <nav
-              aria-label="Fil d'Ariane"
-              className={`${typography.editorialKicker} flex flex-wrap items-baseline`}
-              style={{ color: accent }}
-            >
+            <nav aria-label="Fil d'Ariane" className="flex flex-wrap items-center gap-x-2 gap-y-1">
               {crumbs.map((crumb, index) => (
-                <span key={crumb.label} className="inline-flex items-baseline">
+                <span key={crumb.label} className="inline-flex items-center gap-2">
                   {index > 0 ? (
-                    <span aria-hidden className="px-2">
+                    <span aria-hidden className={`${typography.uiCaption} text-[rgb(var(--color-text-secondary))]`}>
                       ›
                     </span>
                   ) : null}
@@ -270,180 +436,123 @@ export function EditorialArticle({
                     <button
                       type="button"
                       onClick={() => onPath(crumb.to!)}
-                      className={typography.editorialKicker}
+                      className={
+                        index === 0
+                          ? `${typography.uiCategory} text-[rgb(var(--color-text-brand))] ${focusRing}`
+                          : `${typography.uiCaption} text-[rgb(var(--color-text-brand))] ${focusRing}`
+                      }
                     >
                       {crumb.label}
                     </button>
                   ) : (
-                    <span>{crumb.label}</span>
+                    <span
+                      className={
+                        index === 0
+                          ? `${typography.uiCategory} text-[rgb(var(--color-text-brand))]`
+                          : `${typography.uiCaption} text-[rgb(var(--color-text-brand))]`
+                      }
+                    >
+                      {crumb.label}
+                    </span>
                   )}
                 </span>
               ))}
             </nav>
           ) : null}
-          <h1 className={`${typography.editorialTitle} pt-3`}>{article.title}</h1>
-          <p className={`${typography.editorialChapo} pt-3`}>{article.chapo}</p>
-          <div className="pt-4">
-            <Byline author={article.author} />
-          </div>
-          <p className={`${typography.editorialMeta} pt-2`}>{article.meta}</p>
+          <h1 className={typography.articleTitle}>{article.title}</h1>
+          <p className={`${typography.uiCaption} text-[rgb(var(--color-text-secondary))]`}>
+            {authorLine(article.author)}
+          </p>
         </header>
 
-        {article.enBref ? (
-          <dl className="mx-5 mt-6 grid grid-cols-2 gap-x-4 gap-y-3 border-y border-[rgb(var(--occ-border))] py-4">
-            {article.enBref.map((item) => (
-              <div key={item.label}>
-                <dt className={typography.editorialLabel}>{item.label}</dt>
-                <dd className={`${typography.editorialCaption} pt-1`}>{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : null}
-
-        <figure className="flex flex-col gap-2 pt-6">
-          <div className="aspect-[310/174] overflow-hidden bg-[rgb(var(--occ-dark))]">
+        <figure className="bg-[rgb(var(--color-background-warm))]">
+          <div className="h-[220px] overflow-hidden bg-[rgb(var(--color-text))]">
             <Photo src={article.heroSrc} alt="" />
           </div>
-          <figcaption className="px-5">
-            <Legend caption={article.heroCaption} credit={article.heroCredit} />
-          </figcaption>
         </figure>
 
-        <div className={`${typography.editorialStack} px-5 pb-10 pt-6`}>
-          {article.blocks.map((block, index) => {
-            const isFirstHeading = block.type === 'heading' && headingCount === 0
-            if (block.type === 'heading') headingCount += 1
-            return (
-              <BodyBlock
-                key={`${block.type}-${index}`}
-                block={block}
-                accent={accent}
-                isFirstHeading={isFirstHeading}
-              />
-            )
-          })}
+        <div className="flex flex-col gap-10 px-6 py-10">
+          <p className={typography.editorialIntro}>{article.chapo}</p>
+          {chapters.map((chapter, chapterIndex) => (
+            <div key={chapterIndex} className="flex flex-col gap-6">
+              {chapter.map((block) => {
+                const index = cursor
+                cursor += 1
+                return (
+                  <div key={`${block.type}-${index}`} className="flex flex-col gap-6">
+                    <BodyBlock block={block} />
+                    {inline && index === anchor ? (
+                      <ReadAlso item={inline} onOpen={() => onNavigate(inline.screen)} />
+                    ) : null}
+                  </div>
+                )
+              })}
+            </div>
+          ))}
         </div>
 
+        <ArticleClose />
+
         {article.sources?.length ? (
-          <section className="border-t border-[rgb(var(--occ-border))] px-5 py-8">
-            <h2 className={typography.editorialLabel}>Sources</h2>
-            <ul className="pt-3">
-              {article.sources.map((source) => (
-                <li
-                  key={source.title}
-                  className="border-b border-[rgb(var(--occ-border))] py-3 last:border-b-0"
-                >
-                  <p className={typography.editorialCaption}>{source.title}</p>
-                  <p className={`${typography.editorialCredit} pt-1`}>{source.detail} ↗</p>
-                </li>
-              ))}
-            </ul>
+          <section className="px-6 py-6">
+            <h2 className="sr-only">Sources et références</h2>
+            <button
+              type="button"
+              aria-expanded={sourcesOpen}
+              onClick={() => setSourcesOpen((open) => !open)}
+              className={`flex h-16 w-full items-center gap-4 text-left ${focusRing}`}
+            >
+              <span className={`${typography.uiCategory} flex-1 text-[rgb(var(--color-text-brand))]`}>
+                Sources & références
+              </span>
+              <span className="grid size-11 place-items-center bg-[rgb(var(--color-background-warm))]">
+                <img
+                  src={plusIcon}
+                  alt=""
+                  className={sourcesOpen ? 'rotate-45' : undefined}
+                />
+              </span>
+            </button>
+            {sourcesOpen ? (
+              <ul className="flex flex-col pb-2">
+                {article.sources.map((source) => (
+                  <li key={source.title} className="border-t border-[rgb(var(--color-border))] py-4">
+                    <p className={typography.editorialSecondary}>{source.title}</p>
+                    <p className={`${typography.uiCredit} uppercase text-[rgb(var(--color-text-secondary))]`}>
+                      {source.detail}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </section>
         ) : null}
 
-        {article.tags.length > 0 ? (
-          <ul className="flex flex-wrap gap-2 px-5 pb-10">
-            {article.tags.map((tag) => (
-              <li key={tag.label}>
-                {tag.href ? (
-                  <button
-                    type="button"
-                    onClick={() => onPath(tag.href!)}
-                    className={`${typography.editorialTag} inline-flex items-center rounded-md bg-[rgb(var(--occ-light))] px-3 py-2`}
-                  >
-                    {tag.label}
-                  </button>
-                ) : (
-                  <span
-                    className={`${typography.editorialTag} inline-flex items-center rounded-md bg-[rgb(var(--occ-light))] px-3 py-2`}
-                  >
-                    {tag.label}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
+        {footerTags.length > 0 ? (
+          <section className="border-t border-[rgb(var(--color-border))] px-6 py-6">
+            <h2 className={`${typography.uiCategory} text-text`}>Tags</h2>
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {footerTags.map((tag) => {
+                const className = `${typography.uiCaption} inline-flex items-center rounded-pill border border-[rgb(var(--color-border))] px-3 py-2 ${focusRing}`
+                return (
+                  <li key={tag.label}>
+                    {tag.href ? (
+                      <button type="button" onClick={() => onPath(tag.href!)} className={className}>
+                        {tag.label}
+                      </button>
+                    ) : (
+                      <span className={className}>{tag.label}</span>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
         ) : null}
       </article>
 
-      <aside className="bg-[rgb(var(--occ-light))] px-5 py-8">
-        <h2 className={typography.editorialLabel}>Autour de cet article</h2>
-
-        {article.territoire ? (
-          <button
-            type="button"
-            onClick={() => onNavigate(article.territoire!.screen)}
-            className="mt-5 flex w-full items-center gap-4 text-left"
-          >
-            <div className="w-24 flex-none">
-              <GascogneMap className="mt-0 rounded-md border-[rgb(var(--occ-border))]" />
-            </div>
-            <span>
-              <span className={typography.editorialLabel}>Territoire</span>
-              <span className="font-ui block pt-1 text-[15px] font-semibold leading-snug">
-                {article.territoire.name}
-              </span>
-              <span className={`${typography.editorialCaption} block pt-1`}>
-                {article.territoire.line}
-              </span>
-            </span>
-          </button>
-        ) : null}
-
-        {article.portrait ? (
-          <button
-            type="button"
-            onClick={() => onNavigate(article.portrait!.screen)}
-            className="mt-6 flex w-full items-center gap-4 text-left"
-          >
-            <Visuel className="h-16 w-16 flex-none rounded-full" />
-            <span>
-              <span className={typography.editorialLabel}>Portrait</span>
-              <span className="font-ui block pt-1 text-[15px] font-semibold leading-snug">
-                {article.portrait.name}
-              </span>
-              <span className={`${typography.editorialCaption} block pt-1`}>
-                {article.portrait.line}
-              </span>
-            </span>
-          </button>
-        ) : null}
-
-        <div className="mt-8">
-          <h3 className={typography.editorialLabel}>À lire ensuite</h3>
-          <ul className="pt-2">
-            {article.suggestions.map((item) => (
-              <li key={item.title} className="border-b border-[rgb(var(--occ-border))] last:border-b-0">
-                <button
-                  type="button"
-                  onClick={() => onNavigate(item.screen)}
-                  className="flex w-full items-center gap-3 py-3 text-left"
-                >
-                  <Visuel className="h-14 w-14 flex-none" />
-                  <span className="min-w-0">
-                    <span className={typography.editorialKicker} style={{ color: accent }}>
-                      {item.type}
-                    </span>
-                    <span className={`${typography.editorialCaption} block pt-1 font-semibold text-[rgb(var(--occ-dark))]`}>
-                      {item.title}
-                    </span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {article.maleta ? (
-          <div className="mt-6 border-t border-[rgb(var(--occ-border))] pt-4">
-            <p className={`${typography.editorialCaption} text-[rgb(var(--occ-dark))]`}>
-              {article.maleta}
-            </p>
-            <p className={`${typography.editorialCredit} pt-1`}>La Maleta ↗</p>
-          </div>
-        ) : null}
-
-      </aside>
+      <RelatedRail items={around} />
+      <SiteFooter go={onNavigate} />
     </div>
   )
 }
