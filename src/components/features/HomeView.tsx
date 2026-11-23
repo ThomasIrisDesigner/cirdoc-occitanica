@@ -303,9 +303,43 @@ export function SiteHeader({
   tone?: 'light' | 'dark'
 }) {
   const dark = tone === 'dark'
-  const logo = <Logo light={dark} />
+  const headerRef = useRef<HTMLElement>(null)
+  const [chrome, setChrome] = useState<'top' | 'hidden' | 'compact'>('top')
   const [searchOpen, setSearchOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const header = headerRef.current
+    if (!header) return
+    const scroller = header.closest<HTMLElement>('[data-page-scroll]')
+    const target: HTMLElement | Window = scroller ?? window
+    const read = () => (target instanceof Window ? target.scrollY : target.scrollTop)
+    let last = read()
+    let up = 0
+
+    const onScroll = () => {
+      const y = read()
+      const dy = y - last
+      last = y
+      if (y <= 88) {
+        up = 0
+        setChrome((current) => (current === 'top' ? current : 'top'))
+        return
+      }
+      if (dy > 0) {
+        up = 0
+        setChrome((current) => (current === 'hidden' ? current : 'hidden'))
+        return
+      }
+      if (dy < 0) {
+        up += -dy
+        if (up >= 12) setChrome((current) => (current === 'compact' ? current : 'compact'))
+      }
+    }
+
+    target.addEventListener('scroll', onScroll, { passive: true })
+    return () => target.removeEventListener('scroll', onScroll)
+  }, [])
   const openSearch = () => {
     setMenuOpen(false)
     setSearchOpen(true)
@@ -317,12 +351,27 @@ export function SiteHeader({
   const control = dark
     ? 'border-[rgb(var(--color-accent-sand))] text-[rgb(var(--color-accent-sand))]'
     : 'border-border'
+  const compact = chrome === 'compact'
+  const bar = [
+    'pointer-events-auto flex items-center justify-between px-4',
+    'transition-transform duration-200 ease-out motion-reduce:transition-none',
+    dark
+      ? 'bg-collections text-[rgb(var(--color-accent-sand))]'
+      : 'bg-[rgb(var(--color-background-warm))] text-text',
+    compact ? 'h-16 border-b py-2' : 'h-[88px] py-3',
+    compact
+      ? dark
+        ? 'border-[rgb(var(--color-border-on-dark))]'
+        : 'border-border'
+      : 'border-transparent',
+    chrome === 'hidden' ? '-translate-y-full' : 'translate-y-0',
+  ].join(' ')
+  const logo = <Logo light={dark} compact={compact} />
   return (
-    <header
-      className={`flex items-center justify-between px-4 py-3 ${
-        dark ? 'bg-collections text-[rgb(var(--color-accent-sand))]' : ''
-      }`}
-    >
+    <>
+    <div aria-hidden className="h-[88px]" />
+    <header ref={headerRef} className="pointer-events-none sticky top-0 z-30 -mt-[88px] h-[88px]">
+      <div className={bar} {...(chrome === 'hidden' ? { inert: true } : {})}>
       {onLogo ? (
         <button type="button" onClick={onLogo} aria-label="Accueil" className="text-left">{logo}</button>
       ) : logo}
@@ -367,7 +416,9 @@ export function SiteHeader({
         onClose={() => setSearchOpen(false)}
         onMenu={openMenu}
       />
+      </div>
     </header>
+    </>
   )
 }
 

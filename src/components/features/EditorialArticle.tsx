@@ -417,9 +417,7 @@ export function EditorialArticle({
 
   return (
     <div className="bg-surface text-text">
-      <div className="bg-[rgb(var(--color-background-warm))]">
-        <SiteHeader go={onNavigate} onLogo={() => onNavigate('home')} />
-      </div>
+      <SiteHeader go={onNavigate} onLogo={() => onNavigate('home')} />
 
       <article>
         <header className="flex flex-col gap-4 bg-[rgb(var(--color-surface-emphasis))] p-6">

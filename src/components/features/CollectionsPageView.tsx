@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 
-import { IconSearch, IconYoutube } from '@/components/features/HomeIcons'
+import { IconCollections, IconSearch, IconYoutube } from '@/components/features/HomeIcons'
 import { SiteFooter, SiteHeader, SliderArrows } from '@/components/features/HomeView'
 import {
   CIRDOC_YOUTUBE,
@@ -184,7 +184,10 @@ export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
 
       <div className="flex flex-col gap-10 px-4 pb-10 pt-8">
       <section>
-        <h1 className={typography.title}>Collections</h1>
+        <h1 className={`${typography.title} flex items-end gap-3`}>
+          <IconCollections className="mb-[11px] h-7 w-auto shrink-0 text-[rgb(var(--color-background-warm))]" />
+          Collections
+        </h1>
         <form
           className="mt-8"
           onSubmit={(event) => {
