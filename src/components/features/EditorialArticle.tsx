@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 import uneA from '@/assets/home/une-a.png'
 import uneB from '@/assets/home/une-b.png'
@@ -10,11 +10,14 @@ import playIcon from '@/assets/article/play.svg'
 import plusIcon from '@/assets/article/plus.svg'
 import { articlesSharingTags } from '@/components/features/EspacePageView'
 import { SiteFooter, SiteHeader, SliderArrows } from '@/components/features/HomeView'
+import { IconChevron } from '@/components/features/HomeIcons'
+import { findCollectionCard, type CollectionCard } from '@/data/collections'
 import {
   EDITORIAL_ARTICLE,
   gabaritPath,
   type EditorialArticleContent,
   type EditorialBlock,
+  type TextRun,
 } from '@/data/editorialArticle'
 import type { EspaceKey, Screen } from '@/lib/prototypeRoutes'
 import { typography } from '@/styles/typography'
@@ -97,29 +100,107 @@ function Photo({
   src,
   alt,
   position,
+  fit = 'cover',
 }: {
   src?: string
   alt: string
   position?: string
+  fit?: 'cover' | 'contain'
 }) {
   if (!src) return <Visuel />
   return (
     <img
       src={src}
       alt={alt}
-      className={['h-full w-full object-cover', position].filter(Boolean).join(' ')}
+      className={[
+        'h-full w-full',
+        fit === 'contain' ? 'object-contain' : 'object-cover',
+        position,
+      ]
+        .filter(Boolean)
+        .join(' ')}
     />
   )
 }
 
-function Legend({ caption, credit }: { caption: string; credit?: string }) {
+function InlineText({
+  runs,
+  onPath,
+  tone = 'action',
+}: {
+  runs: string | TextRun[]
+  onPath: (path: string) => void
+  tone?: 'action' | 'text'
+}) {
+  if (typeof runs === 'string') return runs
+  const line =
+    tone === 'action'
+      ? 'decoration-[rgb(var(--color-action))] decoration-[1.5px] underline-offset-[3px]'
+      : 'decoration-current'
+  return runs.map((run, index) =>
+    typeof run === 'string' ? (
+      <span key={index}>{run}</span>
+    ) : (
+      <a
+        key={index}
+        href={run.to}
+        onClick={(event) => {
+          event.preventDefault()
+          onPath(run.to)
+        }}
+        className={`cursor-pointer text-inherit underline ${line} ${focusRing}`}
+      >
+        {run.text}
+      </a>
+    ),
+  )
+}
+
+function Legend({
+  caption,
+  credit,
+  onPath,
+  transcript,
+  className = '',
+}: {
+  caption: string | TextRun[]
+  credit?: string | TextRun[]
+  onPath: (path: string) => void
+  transcript?: string
+  className?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const transcriptId = useId()
+
   return (
-    <figcaption className="border-l border-[rgb(var(--color-border))] py-1 pl-[17px] pr-4">
-      <p className={typography.uiCaption}>{caption}</p>
+    <figcaption
+      className={`flex flex-col gap-1 border-l border-[rgb(var(--color-border))] py-1 pl-[17px] pr-4 ${className}`}
+    >
+      <p className={typography.uiCaption}>
+        <InlineText runs={caption} onPath={onPath} tone="text" />
+      </p>
       {credit ? (
         <p className={`${typography.uiCredit} uppercase text-[rgb(var(--color-text-secondary))]`}>
-          {credit}
+          <InlineText runs={credit} onPath={onPath} tone="text" />
         </p>
+      ) : null}
+      {transcript ? (
+        <>
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={transcriptId}
+            onClick={() => setOpen((value) => !value)}
+            className={`${typography.uiCaption} mt-2 w-fit cursor-pointer bg-transparent p-0 text-left underline decoration-current ${focusRing}`}
+          >
+            Transcription
+          </button>
+          {open ? (
+            <p id={transcriptId} className={`${typography.uiCaption} mt-1`}>
+              {transcript}
+            </p>
+          ) : null}
+        </>
       ) : null}
     </figcaption>
   )
@@ -164,25 +245,35 @@ function FigureFrame({
   children,
   caption,
   credit,
+  onPath,
+  transcript,
 }: {
   children: ReactNode
-  caption: string
-  credit?: string
+  caption: string | TextRun[]
+  credit?: string | TextRun[]
+  onPath: (path: string) => void
+  transcript?: string
 }) {
   return (
     <figure className="flex flex-col gap-2">
       {children}
-      <Legend caption={caption} credit={credit} />
+      <Legend caption={caption} credit={credit} onPath={onPath} transcript={transcript} />
     </figure>
   )
 }
 
-function PairBlock({ block }: { block: Extract<EditorialBlock, { type: 'pair' }> }) {
+function PairBlock({
+  block,
+  onPath,
+}: {
+  block: Extract<EditorialBlock, { type: 'pair' }>
+  onPath: (path: string) => void
+}) {
   const same = Boolean(block.leftSrc && block.rightSrc && block.leftSrc === block.rightSrc)
   const single = !block.leftSrc || !block.rightSrc || same
 
   return (
-    <FigureFrame caption={block.caption} credit={block.credit}>
+    <FigureFrame caption={block.caption} credit={block.credit} onPath={onPath}>
       {single ? (
         <div className="h-[294px] overflow-hidden bg-[rgb(var(--color-text))]">
           <Photo src={block.leftSrc ?? block.rightSrc} alt="" />
@@ -201,12 +292,137 @@ function PairBlock({ block }: { block: Extract<EditorialBlock, { type: 'pair' }>
   )
 }
 
-function VideoBlock({ block }: { block: Extract<EditorialBlock, { type: 'video' }> }) {
+function clock(seconds: number) {
+  const whole = Math.max(0, Math.floor(seconds))
+  const minutes = Math.floor(whole / 60)
+  return `${minutes}:${String(whole % 60).padStart(2, '0')}`
+}
+
+function AudioBlock({
+  block,
+  onPath,
+}: {
+  block: Extract<EditorialBlock, { type: 'audio' }>
+  onPath: (path: string) => void
+}) {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [playing, setPlaying] = useState(false)
+  const [muted, setMuted] = useState(false)
+  const [time, setTime] = useState(0)
+  const [length, setLength] = useState(block.duration ?? 0)
+
+  useEffect(() => {
+    if (!playing || block.src) return
+    const id = window.setInterval(() => {
+      setTime((current) => {
+        if (current + 0.25 >= length) {
+          setPlaying(false)
+          return 0
+        }
+        return current + 0.25
+      })
+    }, 250)
+    return () => window.clearInterval(id)
+  }, [playing, block.src, length])
+
+  function seek(value: number) {
+    setTime(value)
+    if (audioRef.current) audioRef.current.currentTime = value
+  }
+
+  function toggle() {
+    const audio = audioRef.current
+    if (!audio) {
+      setPlaying((value) => !value)
+      return
+    }
+    if (audio.paused) {
+      void audio.play()
+      setPlaying(true)
+    } else {
+      audio.pause()
+      setPlaying(false)
+    }
+  }
+
+  return (
+    <FigureFrame
+      caption={block.caption}
+      credit={block.credit}
+      onPath={onPath}
+      transcript={block.transcript}
+    >
+      <div className="flex items-center gap-2 border border-[rgb(var(--color-border))] bg-surface py-1 pl-1 pr-3">
+        {block.src ? (
+          <audio
+            ref={audioRef}
+            src={block.src}
+            preload="metadata"
+            muted={muted}
+            onLoadedMetadata={(event) => setLength(event.currentTarget.duration)}
+            onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
+            onEnded={() => setPlaying(false)}
+          />
+        ) : null}
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={playing ? `Pause : ${block.title}` : `Lecture : ${block.title}`}
+          className={`grid size-11 shrink-0 place-items-center text-[rgb(var(--color-action))] ${focusRing}`}
+        >
+          {playing ? (
+            <svg viewBox="0 0 16 16" className="size-4" aria-hidden>
+              <path fill="currentColor" d="M3 2h3.5v12H3zM9.5 2H13v12H9.5z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 16 16" className="size-4" aria-hidden>
+              <path fill="currentColor" d="M4 2.5v11l10-5.5z" />
+            </svg>
+          )}
+        </button>
+        <input
+          type="range"
+          min={0}
+          max={Math.max(length, 1)}
+          step={0.1}
+          value={Math.min(time, Math.max(length, 1))}
+          aria-label="Position de lecture"
+          aria-valuetext={`${clock(time)} sur ${clock(length)}`}
+          onChange={(event) => seek(Number(event.target.value))}
+          className="h-6 min-w-0 flex-1 accent-[rgb(var(--color-action))]"
+        />
+        <span className={`${typography.uiCaption} shrink-0 tabular-nums text-[rgb(var(--color-text-secondary))]`} aria-hidden>
+          {clock(time)} / {clock(length)}
+        </span>
+        <button
+          type="button"
+          aria-pressed={muted}
+          aria-label={muted ? 'Activer le son' : 'Couper le son'}
+          onClick={() => setMuted((value) => !value)}
+          className={`grid size-11 shrink-0 place-items-center text-text ${focusRing}`}
+        >
+          <svg viewBox="0 0 16 16" className="size-4" aria-hidden>
+            <path fill="currentColor" d="M2 6h2.5L8 3.2v9.6L4.5 10H2z" />
+            {muted ? <path stroke="currentColor" strokeWidth="1.5" d="M10 6.5l4 3M14 6.5l-4 3" /> : null}
+          </svg>
+        </button>
+      </div>
+    </FigureFrame>
+  )
+}
+
+function VideoBlock({
+  block,
+  onPath,
+}: {
+  block: Extract<EditorialBlock, { type: 'video' }>
+  onPath: (path: string) => void
+}) {
   const [playing, setPlaying] = useState(false)
   const src = `${block.embedSrc}${block.embedSrc.includes('?') ? '&' : '?'}autoplay=1`
 
   return (
-    <FigureFrame caption={block.caption} credit={block.credit}>
+    <FigureFrame caption={block.caption} credit={block.credit} onPath={onPath} transcript={block.transcript}>
       <div className="relative h-[192px] overflow-hidden bg-[rgb(var(--color-text))]">
         {playing ? (
           <iframe
@@ -236,7 +452,18 @@ function VideoBlock({ block }: { block: Extract<EditorialBlock, { type: 'video' 
   )
 }
 
-function CarouselBlock({ block }: { block: Extract<EditorialBlock, { type: 'carousel' }> }) {
+function plain(runs: string | TextRun[]) {
+  if (typeof runs === 'string') return runs
+  return runs.map((run) => (typeof run === 'string' ? run : run.text)).join('')
+}
+
+function CarouselBlock({
+  block,
+  onPath,
+}: {
+  block: Extract<EditorialBlock, { type: 'carousel' }>
+  onPath: (path: string) => void
+}) {
   const [index, setIndex] = useState(0)
   const count = block.slides.length
   const slide = block.slides[index]
@@ -245,72 +472,127 @@ function CarouselBlock({ block }: { block: Extract<EditorialBlock, { type: 'caro
     setIndex((next + count) % count)
   }
 
+  const position = `Image ${index + 1} sur ${count}`
+  const captionText = plain(slide.caption)
+  const creditText = slide.credit ? plain(slide.credit) : ''
+
   return (
-    <FigureFrame caption={block.caption} credit={block.credit}>
-      <div className="relative h-[220px] overflow-hidden bg-[rgb(var(--color-text))]">
-        <Photo
-          src={slide.src}
-          alt={slide.label}
-          position={index === 1 ? 'object-[30%_center]' : index === 2 ? 'object-right' : 'object-left'}
-        />
-        <div className="absolute inset-x-0 bottom-2 flex justify-center gap-2">
+    <div role="region" aria-roledescription="carrousel" aria-label="Visuels" className="bg-[rgb(var(--color-background-warm))]">
+      <figure className="px-4 pt-4">
+        <div className="relative h-[220px] overflow-hidden">
           {block.slides.map((item, i) => (
-            <button
+            <span
               key={item.label}
-              type="button"
-              aria-label={item.label}
-              onClick={() => setIndex(i)}
-              className={[
-                'size-2 rounded-pill',
-                i === index ? 'bg-surface' : 'bg-surface/50',
-              ].join(' ')}
-            />
+              aria-hidden={i === index ? undefined : true}
+              className={`absolute inset-0 transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${i === index ? 'opacity-100' : 'opacity-0'}`}
+            >
+              <Photo src={item.src} alt="" fit="contain" />
+            </span>
           ))}
         </div>
-        <button
-          type="button"
-          aria-label="Image précédente"
-          onClick={() => go(index - 1)}
-          className={`absolute left-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-pill bg-surface text-text ${focusRing}`}
-        >
-          ‹
-        </button>
-        <button
-          type="button"
-          aria-label="Image suivante"
-          onClick={() => go(index + 1)}
-          className={`absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-pill bg-surface text-text ${focusRing}`}
-        >
-          ›
-        </button>
-      </div>
-    </FigureFrame>
+        <figcaption className="px-6 pb-2 pt-4 text-center">
+          <div className="relative h-[52px]">
+            {block.slides.map((item, i) => {
+              const active = i === index
+              return (
+                <div
+                  key={item.label}
+                  aria-hidden={active ? undefined : true}
+                  inert={active ? undefined : true}
+                  className={`absolute inset-0 flex flex-col justify-center transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${active ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+                >
+                  <p className={`${typography.uiCaption} line-clamp-2`}>
+                    <InlineText runs={item.caption} onPath={onPath} tone="text" />
+                  </p>
+                  {item.credit ? (
+                    <p className={`${typography.uiCredit} mt-1 uppercase text-[rgb(var(--color-text-secondary))]`}>
+                      <InlineText runs={item.credit} onPath={onPath} tone="text" />
+                    </p>
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
+        </figcaption>
+      </figure>
+      {count > 1 ? (
+        <div className="flex items-center justify-center pb-2">
+          <button
+            type="button"
+            aria-label="Image précédente"
+            onClick={() => go(index - 1)}
+            className={`grid size-11 place-items-center ${focusRing}`}
+          >
+            <IconChevron direction="left" className="size-6" />
+          </button>
+          <p className={`${typography.uiCaption} min-w-14 text-center tabular-nums`} aria-hidden>
+            {index + 1} / {count}
+          </p>
+          <p className="sr-only" aria-live="polite" aria-atomic="true">
+            {[position, captionText, creditText]
+              .filter(Boolean)
+              .map((part) => part.replace(/[.\s]+$/, ''))
+              .join('. ')}
+          </p>
+          <button
+            type="button"
+            aria-label="Image suivante"
+            onClick={() => go(index + 1)}
+            className={`grid size-11 place-items-center ${focusRing}`}
+          >
+            <IconChevron direction="right" className="size-6" />
+          </button>
+        </div>
+      ) : null}
+    </div>
   )
 }
 
-function BodyBlock({ block }: { block: EditorialBlock }) {
+function BodyBlock({ block, onPath }: { block: EditorialBlock; onPath: (path: string) => void }) {
   if (block.type === 'heading') {
     return <h2 className={typography.heading}>{block.text}</h2>
   }
 
   if (block.type === 'paragraph') {
-    return <p className={typography.reading}>{block.text}</p>
+    return (
+      <p className={typography.reading}>
+        <InlineText runs={block.text} onPath={onPath} />
+      </p>
+    )
   }
 
   if (block.type === 'quote') {
     return <Quote text={block.text} attribution={block.attribution} />
   }
 
-  if (block.type === 'pair') return <PairBlock block={block} />
-  if (block.type === 'video') return <VideoBlock block={block} />
-  if (block.type === 'carousel') return <CarouselBlock block={block} />
+  if (block.type === 'pair') return <PairBlock block={block} onPath={onPath} />
+  if (block.type === 'video') return <VideoBlock block={block} onPath={onPath} />
+  if (block.type === 'audio') return <AudioBlock block={block} onPath={onPath} />
+  if (block.type === 'carousel') return <CarouselBlock block={block} onPath={onPath} />
 
   return (
-    <FigureFrame caption={block.caption} credit={block.credit}>
+    <FigureFrame caption={block.caption} credit={block.credit} onPath={onPath}>
       <div className="h-[294px] overflow-hidden bg-[rgb(var(--color-text))]">
         <Photo src={block.src} alt="" />
       </div>
     </FigureFrame>
+  )
+}
+
+function CollectionDocuments({ item, onOpen }: { item: CollectionCard; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex w-full items-start gap-3 bg-collections text-left text-[rgb(var(--color-background-warm))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-accent-sand))]"
+    >
+      <img src={item.image} alt="" className="w-20 shrink-0 self-stretch object-cover" />
+      <span className="flex min-w-0 flex-1 flex-col pb-2 pr-3 pt-3">
+        <span className={`${typography.uiCategory} text-[rgb(var(--color-accent-clay))]`}>Collection à voir</span>
+        <span className={`${typography.cardTitleCompact} mt-1`}>{item.title}</span>
+        <span className={`${typography.editorialSecondary} -mt-1`}>{item.documents}</span>
+      </span>
+    </button>
   )
 }
 
@@ -319,9 +601,9 @@ function ReadAlso({ item, onOpen }: { item: Suggestion; onOpen: () => void }) {
     <button
       type="button"
       onClick={onOpen}
-      className={`flex w-full items-start gap-3 bg-[rgb(var(--color-background-warm))] text-left ${focusRing}`}
+      className={`flex w-full min-h-20 items-start gap-3 bg-[rgb(var(--color-background-warm))] text-left ${focusRing}`}
     >
-      <img src={RELATED_IMAGES[0]} alt="" className="size-20 shrink-0 object-cover" />
+      <img src={RELATED_IMAGES[0]} alt="" className="w-20 shrink-0 self-stretch object-cover" />
       <span className="flex min-w-0 flex-1 flex-col gap-1 py-4 pr-3">
         <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]`}>À lire aussi</span>
         <span className={typography.cardTitleCompact}>{item.title}</span>
@@ -390,6 +672,12 @@ export function EditorialArticle({
   const chapters = groupChapters(article.blocks)
   const anchor = article.blocks.findIndex((block) => block.type === 'pair' || block.type === 'figure')
   const inline = anchor >= 0 ? article.lireAussi : undefined
+  const readAlsoIndex =
+    article.slug === 'titre-de-l-article' && article.blocks[anchor + 1]?.type === 'paragraph'
+      ? anchor + 1
+      : anchor
+  const collection = article.collection ? findCollectionCard(article.collection) : undefined
+  const lastParagraph = article.blocks.findLastIndex((block) => block.type === 'paragraph')
   const seen = new Set<string>([article.title, ...article.suggestions.map((item) => item.title)])
   const around: AroundItem[] = [
     ...article.suggestions.map((item) => ({
@@ -478,9 +766,12 @@ export function EditorialArticle({
                 cursor += 1
                 return (
                   <div key={`${block.type}-${index}`} className="flex flex-col gap-6">
-                    <BodyBlock block={block} />
-                    {inline && index === anchor ? (
+                    <BodyBlock block={block} onPath={onPath} />
+                    {inline && index === readAlsoIndex ? (
                       <ReadAlso item={inline} onOpen={() => onNavigate(inline.screen)} />
+                    ) : null}
+                    {collection && index === lastParagraph ? (
+                      <CollectionDocuments item={collection} onOpen={() => onPath('/collections')} />
                     ) : null}
                   </div>
                 )
@@ -492,37 +783,46 @@ export function EditorialArticle({
         <ArticleClose />
 
         {article.sources?.length ? (
-          <section className="px-6 py-6">
+          <section className="px-6 pt-6 pb-12">
             <h2 className="sr-only">Sources et références</h2>
-            <button
-              type="button"
-              aria-expanded={sourcesOpen}
-              onClick={() => setSourcesOpen((open) => !open)}
-              className={`flex h-16 w-full items-center gap-4 text-left ${focusRing}`}
-            >
-              <span className={`${typography.uiCategory} flex-1 text-[rgb(var(--color-text-brand))]`}>
-                Sources & références
-              </span>
-              <span className="grid size-11 place-items-center bg-[rgb(var(--color-background-warm))]">
-                <img
-                  src={plusIcon}
-                  alt=""
-                  className={sourcesOpen ? 'rotate-45' : undefined}
-                />
-              </span>
-            </button>
-            {sourcesOpen ? (
-              <ul className="flex flex-col pb-2">
-                {article.sources.map((source) => (
-                  <li key={source.title} className="border-t border-[rgb(var(--color-border))] py-4">
-                    <p className={typography.editorialSecondary}>{source.title}</p>
-                    <p className={`${typography.uiCredit} uppercase text-[rgb(var(--color-text-secondary))]`}>
-                      {source.detail}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            <div className="border border-[rgb(var(--color-border))] p-4">
+              <button
+                type="button"
+                aria-expanded={sourcesOpen}
+                onClick={() => setSourcesOpen((open) => !open)}
+                className={`flex w-full items-center gap-4 text-left ${focusRing}`}
+              >
+                <span className={`${typography.uiCategory} flex-1 text-[rgb(var(--color-text-brand))]`}>
+                  Sources & références
+                </span>
+                <span className="grid size-11 place-items-center bg-[rgb(var(--color-background-warm))]">
+                  <img
+                    src={plusIcon}
+                    alt=""
+                    className={sourcesOpen ? 'rotate-45' : undefined}
+                  />
+                </span>
+              </button>
+              {sourcesOpen ? (
+                <ul className="mt-4">
+                  {article.sources.map((source, index) => (
+                    <li
+                      key={index}
+                      className="border-t border-[rgb(var(--color-border))] py-4 last:pb-0"
+                    >
+                      <p className={typography.footerLink}>
+                        <InlineText runs={source.title} onPath={onPath} tone="text" />
+                      </p>
+                      {source.detail ? (
+                        <p className={`${typography.uiCaption} mt-1 text-[rgb(var(--color-text-secondary))]`}>
+                          <InlineText runs={source.detail} onPath={onPath} tone="text" />
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
           </section>
         ) : null}
 

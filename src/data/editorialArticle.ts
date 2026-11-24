@@ -1,4 +1,7 @@
 import unePresentation from '@/assets/home/une-a.png'
+import slideB from '@/assets/home/une-b.png'
+import slideC from '@/assets/home/une-c.png'
+import slidePortrait from '@/assets/home/intro-figures.jpg'
 import { ESPACE_KEYS, type EspaceKey, type Screen, type TerritoireKey } from '@/lib/prototypeRoutes'
 
 /**
@@ -14,31 +17,47 @@ export function filtrePath(path: string, label: string) {
   return `${path}?filtre=${encodeURIComponent(label)}`
 }
 
+export type TextRun = string | { text: string; to: string }
+
 export type EditorialBlock = (
   | { type: 'heading'; text: string }
-  | { type: 'paragraph'; text: string }
+  | { type: 'paragraph'; text: string | TextRun[] }
   | { type: 'quote'; text: string; attribution: string }
-  | { type: 'figure'; src?: string; caption: string; credit: string }
+  | { type: 'figure'; src?: string; caption: string | TextRun[]; credit: string | TextRun[] }
   | {
       type: 'pair'
       leftSrc?: string
       rightSrc?: string
-      caption: string
-      credit: string
+      caption: string | TextRun[]
+      credit: string | TextRun[]
     }
   | {
       type: 'video'
       title: string
       embedSrc: string
       posterSrc?: string
-      caption: string
-      credit: string
+      caption: string | TextRun[]
+      credit: string | TextRun[]
+      transcript?: string
+    }
+  | {
+      type: 'audio'
+      title: string
+      src?: string
+      /** Durée en secondes, si le fichier n’est pas encore branché. */
+      duration?: number
+      caption: string | TextRun[]
+      credit: string | TextRun[]
+      transcript?: string
     }
   | {
       type: 'carousel'
-      slides: Array<{ src?: string; label: string }>
-      caption: string
-      credit: string
+      slides: Array<{
+        src?: string
+        label: string
+        caption: string | TextRun[]
+        credit?: string | TextRun[]
+      }>
     }
 )
 
@@ -61,11 +80,14 @@ export type EditorialArticleContent = {
   heroCredit: string
   blocks: EditorialBlock[]
   enBref?: Array<{ label: string; value: string }>
-  sources?: Array<{ title: string; detail: string }>
+  /** Titre et précision peuvent porter un lien. Le soulignement reprend la couleur du texte. */
+  sources?: Array<{ title: string | TextRun[]; detail?: string | TextRun[] }>
   territoire?: { name: string; line: string; screen: Screen }
   portrait?: { name: string; line: string; screen: Screen }
   /** Encart dans le corps. Distinct du rail « Autour de cet article ». */
   lireAussi?: { title: string; screen: Screen }
+  /** Collection numérisée liée. Le titre renvoie à une carte de `collections.ts`. */
+  collection?: string
   /**
    * Articles liés à la main pour « Autour de cet article ».
    * Ils s’affichent en premier, dans cet ordre. La remontée par tag suit.
@@ -169,6 +191,7 @@ export const EDITORIAL_ARTICLE: EditorialArticleContent = {
     screen: 'espace-portraits',
   },
   lireAussi: { title: 'Les rondeaux gascons', screen: 'article' },
+  collection: 'Nòva Cançon',
   suggestions: [
     { title: 'Danses et instruments', screen: 'espace-fetes' },
     { title: 'Alain Cadeillan', screen: 'espace-portraits' },
@@ -182,11 +205,13 @@ export const EDITORIAL_ARTICLE: EditorialArticleContent = {
   ],
 }
 
-const LOREM =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.'
-
 const LOREM_SHORT =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+
+/** Le paragraphe qui précède un composant du gabarit se termine par son nom. */
+function before(name: string) {
+  return `${LOREM_SHORT} ${name}\u00a0:`
+}
 
 /** Même gabarit que la fiche Boha, avec un contenu neutre. */
 export const EDITORIAL_SPECIMEN: EditorialArticleContent = {
@@ -201,38 +226,107 @@ export const EDITORIAL_SPECIMEN: EditorialArticleContent = {
   heroCaption: 'Légende du visuel principal. Lorem ipsum dolor sit amet.',
   heroCredit: 'Crédit · Source',
   blocks: [
-    { type: 'paragraph', text: LOREM },
-    { type: 'paragraph', text: LOREM_SHORT },
+    {
+      type: 'paragraph',
+      text: [
+        `${LOREM_SHORT} Lien dans le texte\u00a0: `,
+        { text: 'Lien souligné', to: '/espaces/musique/boha' },
+        '.',
+      ],
+    },
+    { type: 'paragraph', text: before('Citation') },
     {
       type: 'quote',
       text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.',
       attribution: 'Source de la citation',
     },
+    { type: 'paragraph', text: before('Intertitre') },
     { type: 'heading', text: 'Intertitre' },
-    { type: 'paragraph', text: LOREM },
+    { type: 'paragraph', text: before('Paire d’images') },
     {
       type: 'pair',
-      caption: 'Légende commune aux deux visuels.',
+      caption: [
+        'Légende commune aux deux visuels. ',
+        { text: 'Lien', to: '/espaces/musique/boha' },
+      ],
       credit: 'Crédit · Source',
     },
-    { type: 'paragraph', text: LOREM_SHORT },
+    { type: 'paragraph', text: before('À lire aussi') },
+    { type: 'paragraph', text: before('Vidéo') },
     {
       type: 'video',
       title: 'Titre de la vidéo',
       embedSrc: 'https://www.youtube-nocookie.com/embed/ky72EffSGPw',
       caption: 'Légende de la vidéo. Lorem ipsum dolor sit amet.',
       credit: 'Crédit · Source',
+      transcript:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     },
-    { type: 'heading', text: 'Deuxième intertitre' },
-    { type: 'paragraph', text: LOREM_SHORT },
+    { type: 'paragraph', text: before('Audio') },
+    {
+      type: 'audio',
+      title: 'Titre de l’enregistrement',
+      duration: 194,
+      caption: 'Titre de l’enregistrement. Lorem ipsum dolor sit amet.',
+      credit: 'Crédit · Source',
+      transcript: 'Air instrumental, sans parole. [Titre de l’air], joué à la boha par [interprète].',
+    },
+    { type: 'paragraph', text: before('Carrousel') },
     {
       type: 'carousel',
-      slides: [{ label: 'Visuel 1' }, { label: 'Visuel 2' }, { label: 'Visuel 3' }],
-      caption: 'Légende du carrousel. Lorem ipsum dolor sit amet.',
-      credit: 'Crédit · Source',
+      slides: [
+        {
+          src: slideB,
+          label: 'Visuel 1',
+          caption: 'Légende du premier visuel. Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+          credit: 'Crédit · Source',
+        },
+        {
+          src: slidePortrait,
+          label: 'Visuel 2',
+          caption: ['Légende courte. ', { text: 'Lien', to: '/espaces/musique/boha' }],
+          credit: 'Crédit · Auteur',
+        },
+        {
+          src: slideC,
+          label: 'Visuel 3',
+          caption: 'Légende du troisième visuel. Consectetur adipiscing elit.',
+          credit: 'Crédit · Source',
+        },
+      ],
+    },
+    { type: 'paragraph', text: before('Collection à voir') },
+  ],
+  sources: [
+    {
+      title: [
+        'Lorem Ipsum — ',
+        {
+          text: 'Dolor sit amet, consectetur adipiscing elit : sed do eiusmod tempor incididunt ut labore',
+          to: '/espaces/musique/boha',
+        },
+      ],
+      detail: '1981, Lorem, Médiathèque dolor sit amet, FB X B778',
+    },
+    {
+      title: ['Auteur — ', { text: 'Titre avec lien vers la source', to: '/espaces/musique/boha' }],
+      detail: 'Détails de la référence, lorem ipsum dolor sit amet',
+    },
+    {
+      title: ['Lorem ipsum — ', { text: '29 juillet 1947', to: '/espaces/musique/boha' }],
+    },
+    {
+      title: 'Titre sans lien, lorem ipsum dolor sit amet',
+      detail: 'Gallica',
+    },
+    {
+      title: [
+        'Auctor — ',
+        { text: 'Consectetur adipiscing elit sed do eiusmod', to: '/espaces/musique/boha' },
+      ],
+      detail: 'Tempor incididunt ut labore et dolore magna aliqua',
     },
   ],
-  sources: [{ title: 'Titre de la source', detail: 'Gallica' }],
   territoire: {
     name: 'Territoire',
     line: 'Sous-titre géographique',
@@ -243,7 +337,8 @@ export const EDITORIAL_SPECIMEN: EditorialArticleContent = {
     line: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
     screen: 'espace-portraits',
   },
-  lireAussi: { title: 'Titre d’un article lié', screen: 'article' },
+  lireAussi: { title: 'Titre d’un article lié, lorem ipsum dolor sit amet', screen: 'article' },
+  collection: 'Titre de la collection',
   suggestions: [
     { title: 'Titre d’une fiche liée', screen: 'espace-fetes' },
     { title: 'Titre d’un portrait lié', screen: 'espace-portraits' },
@@ -266,6 +361,8 @@ export const PRESENTATION_ARTICLE: EditorialArticleContent = {
   author: 'CIRDOC, Institut occitan de cultura',
   heroSrc: unePresentation,
   tags: [],
+  collection: undefined,
+  sources: [{ title: 'Titre de la source', detail: 'Gallica' }],
 }
 
 const ARTICLES = [EDITORIAL_ARTICLE, EDITORIAL_SPECIMEN]

@@ -171,3 +171,20 @@ const COLLECTIONS_BY_SLUG = new Map([[COLLECTIONS_LEAD.slug, COLLECTIONS_LEAD]])
 export function getCollection(slug: string): CollectionItem | undefined {
   return COLLECTIONS_BY_SLUG.get(slug)
 }
+
+/** Carte neutre du gabarit d'article. */
+const SPECIMEN_COLLECTION: CollectionCard = {
+  title: 'Titre de la collection',
+  documents: documents(120),
+  image: uneB,
+  href: '#',
+}
+
+/** Carte d'une collection, pour l'encart dans un article. */
+export function findCollectionCard(title: string): CollectionCard | undefined {
+  if (title === SPECIMEN_COLLECTION.title) return SPECIMEN_COLLECTION
+  return (
+    COLLECTIONS_PHARES.find((item) => item.title === title) ??
+    COLLECTION_THEMES.flatMap((theme) => theme.items).find((item) => item.title === title)
+  )
+}
