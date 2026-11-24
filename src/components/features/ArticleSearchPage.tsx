@@ -75,9 +75,6 @@ export function ArticleSearchPage({
                 <img src={item.image} alt="" className="size-20 shrink-0 object-cover" />
                 <span className="min-w-0 flex-1">
                   <span className={`${typography.cardTitleCompact} block`}>{item.title}</span>
-                  <span className={`${typography.editorialSecondary} mt-1 block text-[rgb(var(--color-text-secondary))]`}>
-                    {item.author}
-                  </span>
                   <span className={`${typography.uiCategory} mt-1 block text-[rgb(var(--color-text-brand))]`}>
                     {item.space}
                   </span>
