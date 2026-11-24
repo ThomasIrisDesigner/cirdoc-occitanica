@@ -1,5 +1,6 @@
-import { useId, useRef, useState, type RefObject } from 'react'
+import { useEffect, useId, useRef, useState, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { IconMenu, IconSearch } from '@/components/features/HomeIcons'
 import { LanguagePair } from '@/components/features/LanguagePair'
@@ -26,7 +27,7 @@ const RESOURCES = [
   },
 ] as const
 
-function SearchField({
+export function SearchField({
   id,
   labelledBy,
   placeholder,
@@ -86,9 +87,16 @@ export function SearchPanel({
   const articlesTitleId = useId()
   const collectionsTitleId = useId()
   const collectionsRef = useRef<HTMLInputElement>(null)
+  const navigate = useNavigate()
+  const { pathname, search } = useLocation()
   const [articles, setArticles] = useState('')
   const [collections, setCollections] = useState('')
   const { dialogRef, root, fixed } = useOverlayLock(open, onClose)
+
+  useEffect(() => {
+    if (!open || pathname !== '/recherche') return
+    setArticles(new URLSearchParams(search).get('q') ?? '')
+  }, [open, pathname, search])
 
   if (!open || !root) return null
 
@@ -140,6 +148,10 @@ export function SearchPanel({
           <form
             onSubmit={(event) => {
               event.preventDefault()
+              const term = articles.trim()
+              if (!term) return
+              onClose()
+              navigate(`/recherche?q=${encodeURIComponent(term)}`)
             }}
           >
             <SearchField

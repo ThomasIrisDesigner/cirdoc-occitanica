@@ -55,12 +55,10 @@ function PlusMark({ className }: { className?: string }) {
 
 function RailCard({ item }: { item: CollectionCard | ImageCollection }) {
   const line = 'documents' in item ? item.documents : item.description
-  return (
-    <a
-      href={item.href}
-      onClick={holdPlaceholder}
-      className={`flex w-60 shrink-0 flex-col gap-4 text-left ${focusRing}`}
-    >
+  const external = item.href.startsWith('http')
+  const className = `flex w-60 shrink-0 flex-col gap-4 text-left ${focusRing}`
+  const body = (
+    <>
       <img src={item.image} alt="" className="h-[140px] w-full object-cover" />
       <span className="flex flex-col gap-2">
         <span className={typography.cardTitleCompact}>{item.title}</span>
@@ -68,7 +66,22 @@ function RailCard({ item }: { item: CollectionCard | ImageCollection }) {
           {line}
         </span>
       </span>
-    </a>
+      {external ? <span className="sr-only">, nouvel onglet</span> : null}
+    </>
+  )
+
+  if (external) {
+    return (
+      <a href={item.href} target="_blank" rel="noopener noreferrer" className={className}>
+        {body}
+      </a>
+    )
+  }
+
+  return (
+    <Link to={item.href} onClick={holdPlaceholder} className={className}>
+      {body}
+    </Link>
   )
 }
 
@@ -238,10 +251,7 @@ export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
         <h2 className={typography.heading}>À la une</h2>
         <Link to={PRESENTATION_ARTICLE_PATH} className={`flex w-full flex-col gap-4 text-left ${focusRing}`}>
           <img src={COLLECTIONS_LEAD.image} alt="" className="h-[200px] w-full object-cover" />
-          <span className="flex flex-col gap-2">
-            <span className={typography.cardTitle}>{COLLECTIONS_LEAD.title}</span>
-            <span className={`${typography.uiCategory} text-[rgb(var(--color-accent-clay))]`}>Article</span>
-          </span>
+          <span className={typography.cardTitle}>{COLLECTIONS_LEAD.title}</span>
         </Link>
       </section>
 

@@ -50,6 +50,7 @@ export function App() {
         <Route path="/collections" element={<Prototype />} />
         <Route path="/collections/:slug" element={<Prototype />} />
         <Route path="/articles/presentation-des-collections" element={<Prototype />} />
+        <Route path="/recherche" element={<Prototype />} />
         <Route path="/partenaires" element={<Prototype />} />
         <Route path="/article" element={<Navigate to="/espaces/musique/boha" replace />} />
         <Route path="/espaces/:espace" element={<Prototype />} />

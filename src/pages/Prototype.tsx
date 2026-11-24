@@ -2,6 +2,7 @@ import * as React from 'react'
 import { ArrowLeft, ChevronDown, Search, X } from 'lucide-react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
+import { ArticleSearchPage } from '@/components/features/ArticleSearchPage'
 import { CollectionEditorialView, CollectionsPageView } from '@/components/features/CollectionsPageView'
 import { EditorialArticle } from '@/components/features/EditorialArticle'
 import { EspacePageView, isDressedEspace } from '@/components/features/EspacePageView'
@@ -12,9 +13,9 @@ import { TerritoirePageView } from '@/components/features/TerritoirePageView'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { getCollection } from '@/data/collections'
+import { getCollection, LARZAC_COLLECTION_PATH } from '@/data/collections'
 import { TERRITOIRES_CONFIG } from '@/data/territoires'
-import { getEditorialArticle, articlePath, filtrePath, gabaritPath, EDITORIAL_SPECIMEN, PRESENTATION_ARTICLE, PRESENTATION_ARTICLE_PATH, type EditorialArticleContent } from '@/data/editorialArticle'
+import { getEditorialArticle, articlePath, filtrePath, gabaritPath, EDITORIAL_SPECIMEN, PRESENTATION_ARTICLE, PRESENTATION_ARTICLE_PATH, LARZAC_ARTICLE, type EditorialArticleContent } from '@/data/editorialArticle'
 import {
   articleFromPath,
   collectionFromPath,
@@ -1195,6 +1196,8 @@ export function Prototype() {
   const collection = collectionSlug ? getCollection(collectionSlug) : undefined
   const screen = screenFromPath(pathname)
   const isPresentation = pathname === PRESENTATION_ARTICLE_PATH
+  const isLarzac = pathname === LARZAC_COLLECTION_PATH
+  const isArticleSearch = pathname === '/recherche'
 
   function go(next: Screen) {
     navigate(pathForScreen(next))
@@ -1208,11 +1211,11 @@ export function Prototype() {
     return <Navigate to="/" replace />
   }
 
-  if (collectionSlug && !collection) {
+  if (collectionSlug && !collection && !isLarzac) {
     return <Navigate to="/collections" replace />
   }
 
-  if (!article && !collection && !screen && !isPresentation) {
+  if (!article && !collection && !screen && !isPresentation && !isLarzac && !isArticleSearch) {
     return <Navigate to="/" replace />
   }
 
@@ -1226,6 +1229,25 @@ export function Prototype() {
         crumbs={[{ label: 'Collections', to: '/collections' }]}
         onNavigate={go}
         onPath={(path) => navigate(path)}
+      />
+    )
+  } else if (isLarzac) {
+    content = (
+      <EditorialArticle
+        key={pathname}
+        article={LARZAC_ARTICLE}
+        crumbs={[{ label: 'Collections', to: '/collections' }]}
+        onNavigate={go}
+        onPath={(path) => navigate(path)}
+      />
+    )
+  } else if (isArticleSearch) {
+    content = (
+      <ArticleSearchPage
+        key={search}
+        query={params.get('q') ?? ''}
+        onSearch={(next) => navigate(next ? `/recherche?q=${encodeURIComponent(next)}` : '/recherche')}
+        go={go}
       />
     )
   } else if (article) {

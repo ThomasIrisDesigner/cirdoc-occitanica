@@ -17,9 +17,13 @@ import ytFrancois from '@/assets/collections/yt-francois.jpg'
 import ytKaufmann from '@/assets/collections/yt-kaufmann.jpg'
 import ytMarchand from '@/assets/collections/yt-marchand.jpg'
 import ytMarti from '@/assets/collections/yt-marti.jpg'
+import { gallicaResultsUrl } from '@/lib/gallica'
 
 /** Chaîne CIRDOC – Institut occitan de cultura. */
 export const CIRDOC_YOUTUBE = 'https://www.youtube.com/@cirdoc-institut-occitan'
+
+/** Page éditoriale d'une collection riche. Les autres vignettes ouvrent Gallica. */
+export const LARZAC_COLLECTION_PATH = '/collections/lutte-du-larzac'
 
 export const YOUTUBE_FRAMES = [ytKaufmann, ytMarti, ytMarchand, ytFrancois]
 
@@ -95,14 +99,14 @@ export const DOCUMENTS_REMARQUABLES: RemarkableDocument[] = [
 ]
 
 export const COLLECTIONS_PHARES: CollectionCard[] = [
-  { title: 'Lutte du Larzac', documents: '342 documents', image: nextPhoto(), href: '#' },
-  { title: 'Nòva Cançon', documents: '218 documents', image: nextPhoto(), href: '#' },
-  { title: 'Carnaval', documents: '156 documents', image: nextPhoto(), href: '#' },
-  { title: 'Militantisme', documents: '487 documents', image: nextPhoto(), href: '#' },
+  { title: 'Lutte du Larzac', documents: '342 documents', image: nextPhoto(), href: LARZAC_COLLECTION_PATH },
+  { title: 'Nòva Cançon', documents: '218 documents', image: nextPhoto(), href: gallicaResultsUrl('Nòva Cançon') },
+  { title: 'Carnaval', documents: '156 documents', image: nextPhoto(), href: gallicaResultsUrl('Carnaval') },
+  { title: 'Militantisme', documents: '487 documents', image: nextPhoto(), href: gallicaResultsUrl('Militantisme') },
 ]
 
-function themeCard(title: string, count: number): CollectionCard {
-  return { title, documents: documents(count), image: nextPhoto(), href: '#' }
+function themeCard(title: string, count: number, href = gallicaResultsUrl(title)): CollectionCard {
+  return { title, documents: documents(count), image: nextPhoto(), href }
 }
 
 export const COLLECTION_THEMES: Array<{ title: string; items: CollectionCard[] }> = [
@@ -122,7 +126,7 @@ export const COLLECTION_THEMES: Array<{ title: string; items: CollectionCard[] }
     title: 'Mémoires et société',
     items: [
       themeCard('Militantisme', 487),
-      themeCard('Lutte du Larzac', 342),
+      themeCard('Lutte du Larzac', 342, LARZAC_COLLECTION_PATH),
       themeCard('Crise viticole de 1907', 88),
       themeCard('Première Guerre mondiale', 203),
       themeCard('Journaux de guerre', 67),
@@ -153,10 +157,10 @@ export const COLLECTION_THEMES: Array<{ title: string; items: CollectionCard[] }
 ]
 
 export const EN_IMAGES: ImageCollection[] = [
-  { title: "À l'affiche !", description: 'Affiches militantes et culturelles', image: nextPhoto(), href: '#' },
-  { title: 'Tracts et éphémères', description: 'Documents imprimés du mouvement occitan', image: nextPhoto(), href: '#' },
-  { title: 'Cinéma et archives filmées', description: 'Films et documentaires', image: nextPhoto(), href: '#' },
-  { title: 'Lutte du Larzac — Affiches', description: 'Sous-collection affiches du Larzac', image: nextPhoto(), href: '#' },
+  { title: "À l'affiche !", description: 'Affiches militantes et culturelles', image: nextPhoto(), href: gallicaResultsUrl("À l'affiche !") },
+  { title: 'Tracts et éphémères', description: 'Documents imprimés du mouvement occitan', image: nextPhoto(), href: gallicaResultsUrl('Tracts et éphémères') },
+  { title: 'Cinéma et archives filmées', description: 'Films et documentaires', image: nextPhoto(), href: gallicaResultsUrl('Cinéma et archives filmées') },
+  { title: 'Lutte du Larzac — Affiches', description: 'Sous-collection affiches du Larzac', image: nextPhoto(), href: gallicaResultsUrl('Lutte du Larzac affiches') },
 ]
 
 export const FONDS_ARCHIVES = [

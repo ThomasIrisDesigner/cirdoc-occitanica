@@ -1,7 +1,9 @@
 import unePresentation from '@/assets/home/une-a.png'
 import slideB from '@/assets/home/une-b.png'
 import slideC from '@/assets/home/une-c.png'
+import larzacHero from '@/assets/home/col-1.png'
 import slidePortrait from '@/assets/home/intro-figures.jpg'
+import { gallicaResultsUrl } from '@/lib/gallica'
 import { ESPACE_KEYS, type EspaceKey, type Screen, type TerritoireKey } from '@/lib/prototypeRoutes'
 
 /**
@@ -94,6 +96,11 @@ export type EditorialArticleContent = {
    */
   suggestions: Array<{ title: string; screen: Screen }>
   maleta?: string
+  /**
+   * Lien vers les documents de la collection, ouvert dans un nouvel onglet.
+   * Réservé à une page de collection : il s'affiche sous le titre.
+   */
+  documentsUrl?: string
   /**
    * Tags de l'espace de l'article. Ils classent l'article et ouvrent sa liste.
    * href ouvre la page du tag. null : la pastille s'affiche, sans navigation.
@@ -363,6 +370,35 @@ export const PRESENTATION_ARTICLE: EditorialArticleContent = {
   tags: [],
   collection: undefined,
   sources: [{ title: 'Titre de la source', detail: 'Gallica' }],
+}
+
+/** Présentation d'une collection riche. Pas d'espace : le fil d'Ariane reste Collections. */
+export const LARZAC_ARTICLE: EditorialArticleContent = {
+  espace: 'histoires',
+  slug: 'lutte-du-larzac',
+  kicker: 'Collection',
+  kickerColorVar: '--color-text-brand',
+  title: 'Lutte du Larzac',
+  chapo:
+    'Affiches, photographies, tracts et presse : les documents réunis par le CIRDOC sur la mobilisation des paysans du Larzac contre l’extension du camp militaire.',
+  author: 'CIRDOC, Institut occitan de cultura',
+  meta: '',
+  heroSrc: larzacHero,
+  heroCaption: 'Rassemblement sur le causse du Larzac.',
+  heroCredit: 'CIRDOC',
+  documentsUrl: gallicaResultsUrl('Lutte du Larzac'),
+  blocks: [
+    {
+      type: 'paragraph',
+      text: 'En 1971, le projet d’agrandir le camp militaire du Larzac menace une centaine d’exploitations du causse. Les paysans s’organisent. Des comités de soutien se créent dans toute la France, et le mouvement occitan prend part à la mobilisation. Le projet est abandonné en 1981.',
+    },
+    {
+      type: 'paragraph',
+      text: 'La collection conserve les traces imprimées et photographiques de cette décennie : affiches de rassemblement, tracts, clichés de manifestations et articles de presse.',
+    },
+  ],
+  suggestions: [],
+  tags: [],
 }
 
 const ARTICLES = [EDITORIAL_ARTICLE, EDITORIAL_SPECIMEN]

@@ -10,7 +10,7 @@ import playIcon from '@/assets/article/play.svg'
 import plusIcon from '@/assets/article/plus.svg'
 import { articlesSharingTags } from '@/components/features/EspacePageView'
 import { SiteFooter, SiteHeader, SliderArrows } from '@/components/features/HomeView'
-import { IconChevron } from '@/components/features/HomeIcons'
+import { IconChevron, IconCollections } from '@/components/features/HomeIcons'
 import { findCollectionCard, type CollectionCard } from '@/data/collections'
 import {
   EDITORIAL_ARTICLE,
@@ -746,6 +746,23 @@ export function EditorialArticle({
             </nav>
           ) : null}
           <h1 className={typography.articleTitle}>{article.title}</h1>
+          {article.documentsUrl ? (
+            <a
+              href={article.documentsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${typography.footerTitle} inline-flex min-h-11 items-center gap-2 self-start text-text ${focusRing}`}
+            >
+              <span aria-hidden className="grid size-[28px] shrink-0 place-items-center bg-action">
+                <IconCollections className="h-[14px] w-auto text-[rgb(var(--color-background-warm))]" />
+              </span>
+              <span className="inline-flex items-center gap-2">
+                Voir les documents
+                <span aria-hidden>↗</span>
+              </span>
+              <span className="sr-only">, nouvel onglet</span>
+            </a>
+          ) : null}
           <p className={`${typography.uiCaption} text-[rgb(var(--color-text-secondary))]`}>
             {authorLine(article.author)}
           </p>
