@@ -80,7 +80,7 @@ export function MenuPanel({
             type="button"
             aria-label="Rechercher"
             onClick={onSearch}
-            className="grid size-12 place-items-center rounded-pill border border-border"
+            className="chip-icon grid size-12 place-items-center rounded-pill border border-border"
           >
             <IconSearch className="size-[26px]" />
           </button>
@@ -88,7 +88,7 @@ export function MenuPanel({
             type="button"
             onClick={onClose}
             aria-label="Fermer le menu"
-            className="grid size-12 place-items-center rounded-pill border border-[rgb(var(--color-action))]"
+            className="chip-icon grid size-12 place-items-center rounded-pill border border-[rgb(var(--color-action))]"
           >
             <svg viewBox="0 0 16 16" className="size-[22px]" fill="none" aria-hidden>
               <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />

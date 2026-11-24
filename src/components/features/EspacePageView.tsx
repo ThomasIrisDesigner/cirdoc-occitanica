@@ -335,11 +335,11 @@ export function EspacePageView({
           <button
             type="button"
             onClick={() => onOpenGabarit(espace)}
-            className="flex w-full flex-col gap-4 text-left"
+            className="hit flex w-full flex-col gap-4 text-left"
           >
             <img src={page.cardImage} alt="" className="h-[200px] w-full object-cover" />
             <span className="flex flex-col gap-2">
-              <span className={typography.cardTitle}>{page.leadTitle ?? LEAD_TITLE}</span>
+              <span className={`${typography.cardTitle} hit-title`}>{page.leadTitle ?? LEAD_TITLE}</span>
               <span className={`${typography.editorialLead} text-[rgb(var(--color-text-secondary))]`}>{LEAD_CHAPO}</span>
               {page.leadTag ? (
                 <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]`}>{page.leadTag}</span>
@@ -363,7 +363,7 @@ export function EspacePageView({
                 type="button"
                 aria-pressed={active}
                 onClick={() => selectTheme(item)}
-                className={`${typography.uiLabel} shrink-0 rounded-pill px-3 py-2 ${
+                className={`${typography.uiLabel} chip shrink-0 rounded-pill px-3 py-2 ${
                   active
                     ? 'bg-action text-[rgb(var(--color-action-content))]'
                     : 'bg-[rgb(var(--color-accent-sand))]'
@@ -384,10 +384,10 @@ export function EspacePageView({
                 <button
                   type="button"
                   onClick={() => onOpenGabarit(espace)}
-                  className="flex w-full flex-col gap-3 text-left"
+                  className="hit flex w-full flex-col gap-3 text-left"
                 >
                   <img src={page.cardImage} alt="" className="aspect-video w-full object-cover" />
-                  <span className={`${typography.cardTitleCompact} line-clamp-3`}>{card.title}</span>
+                  <span className={`${typography.cardTitleCompact} hit-title line-clamp-3`}>{card.title}</span>
                 </button>
               </li>
             ))}
@@ -421,11 +421,11 @@ export function EspacePageView({
                 key={card.title}
                 type="button"
                 onClick={() => onOpenGabarit(espace)}
-                className="flex w-60 shrink-0 flex-col gap-3 text-left"
+                className="hit flex w-60 shrink-0 flex-col gap-3 text-left"
               >
                 <img src={page.cardImage} alt="" className="h-[140px] w-full object-cover" />
                 <span className="flex flex-col gap-2">
-                  <span className={typography.cardTitleCompact}>{card.title}</span>
+                  <span className={`${typography.cardTitleCompact} hit-title`}>{card.title}</span>
                   {card.tag ? (
                     <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]`}>{card.tag}</span>
                   ) : null}

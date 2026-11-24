@@ -71,10 +71,10 @@ export function ArticleSearchPage({
         <ul className="px-6">
           {results.map((item) => (
             <li key={item.href + item.title} className="border-t border-[rgb(var(--color-border))] first:border-t-0">
-              <Link to={item.href} className={`flex items-start gap-3 py-6 ${focusRing}`}>
+              <Link to={item.href} className={`hit flex items-start gap-3 py-6 ${focusRing}`}>
                 <img src={item.image} alt="" className="size-20 shrink-0 object-cover" />
                 <span className="min-w-0 flex-1">
-                  <span className={`${typography.cardTitleCompact} block`}>{item.title}</span>
+                  <span className={`${typography.cardTitleCompact} hit-title block`}>{item.title}</span>
                   <span className={`${typography.uiCategory} mt-1 block text-[rgb(var(--color-text-brand))]`}>
                     {item.space}
                   </span>

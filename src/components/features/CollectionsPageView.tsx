@@ -56,12 +56,12 @@ function PlusMark({ className }: { className?: string }) {
 function RailCard({ item }: { item: CollectionCard | ImageCollection }) {
   const line = 'documents' in item ? item.documents : item.description
   const external = item.href.startsWith('http')
-  const className = `flex w-60 shrink-0 flex-col gap-4 text-left ${focusRing}`
+  const className = `hit flex w-60 shrink-0 flex-col gap-4 text-left ${focusRing}`
   const body = (
     <>
       <img src={item.image} alt="" className="h-[140px] w-full object-cover" />
       <span className="flex flex-col gap-2">
-        <span className={typography.cardTitleCompact}>{item.title}</span>
+        <span className={`${typography.cardTitleCompact} hit-title`}>{item.title}</span>
         <span className={`${typography.editorialSecondary} text-[rgb(var(--color-accent-sand))]`}>
           {line}
         </span>
@@ -172,9 +172,9 @@ function YoutubeBand() {
             href={CIRDOC_YOUTUBE}
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-flex min-h-11 items-center gap-2 self-start ${focusRing}`}
+            className={`hit inline-flex min-h-11 items-center gap-2 self-start ${focusRing}`}
           >
-            <span className={typography.footerTitle}>Voir la chaîne</span>
+            <span className={`${typography.footerTitle} hit-title`}>Voir la chaîne</span>
             <span aria-hidden>↗</span>
             <span className="sr-only">, nouvel onglet</span>
           </a>
@@ -239,9 +239,9 @@ export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
           href={GALLICA_ADVANCED}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-2 inline-flex min-h-11 items-center gap-2 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
-        >
-          <span className={typography.footerTitle}>Recherche avancée</span>
+            className="hit mt-2 inline-flex min-h-11 items-center gap-2 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
+          >
+            <span className={`${typography.footerTitle} hit-title`}>Recherche avancée</span>
           <span aria-hidden>↗</span>
           <span className="sr-only">, nouvel onglet</span>
         </a>
@@ -249,9 +249,9 @@ export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
 
       <section className="flex flex-col gap-4">
         <h2 className={typography.heading}>À la une</h2>
-        <Link to={PRESENTATION_ARTICLE_PATH} className={`flex w-full flex-col gap-4 text-left ${focusRing}`}>
+        <Link to={PRESENTATION_ARTICLE_PATH} className={`hit flex w-full flex-col gap-4 text-left ${focusRing}`}>
           <img src={COLLECTIONS_LEAD.image} alt="" className="h-[200px] w-full object-cover" />
-          <span className={typography.cardTitle}>{COLLECTIONS_LEAD.title}</span>
+          <span className={`${typography.cardTitle} hit-title`}>{COLLECTIONS_LEAD.title}</span>
         </Link>
       </section>
 
@@ -263,11 +263,11 @@ export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
               key={item.title}
               href={item.href}
               onClick={holdPlaceholder}
-              className={`flex items-start gap-3 border-t border-[rgb(var(--color-border-on-dark))] py-4 text-left first:border-t-0 first:pt-0 last:pb-0 ${focusRing}`}
+              className={`hit flex items-start gap-3 border-t border-[rgb(var(--color-border-on-dark))] py-4 text-left first:border-t-0 first:pt-0 last:pb-0 ${focusRing}`}
             >
               <img src={item.image} alt="" className="size-20 shrink-0 object-cover" />
               <span className="min-w-0 flex-1">
-                <span className={`${typography.cardTitleCompact} block`}>{item.title}</span>
+                <span className={`${typography.cardTitleCompact} hit-title block`}>{item.title}</span>
                 <span className={`${typography.uiCategory} mt-2 block text-[rgb(var(--color-accent-clay))]`}>
                   {item.collection}
                 </span>
@@ -313,9 +313,9 @@ export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
                   <a
                     href="#"
                     onClick={holdPlaceholder}
-                    className={`flex min-h-12 items-center py-3 ${typography.footerTitle} ${focusRing}`}
+                    className={`hit flex min-h-12 items-center py-3 ${typography.footerTitle} ${focusRing}`}
                   >
-                    {name}
+                    <span className="hit-title">{name}</span>
                   </a>
                 </li>
               ))}
@@ -363,9 +363,9 @@ export function CollectionEditorialView({
             href={gallicaResultsUrl(item.query)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center gap-2 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
+            className="hit inline-flex min-h-11 items-center gap-2 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
           >
-            <span className={typography.footerTitle}>Voir les documents</span>
+            <span className={`${typography.footerTitle} hit-title`}>Voir les documents</span>
             <ExternalMark />
             <span className="sr-only">, nouvel onglet</span>
           </a>

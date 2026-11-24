@@ -67,7 +67,7 @@ export function CollectionsShowcase({
       <button
         type="button"
         onClick={onOpen}
-        className="col-start-1 row-start-1 flex w-full flex-col gap-4 text-left text-[rgb(var(--color-background-warm))]"
+        className="hit col-start-1 row-start-1 flex w-full flex-col gap-4 text-left text-[rgb(var(--color-background-warm))]"
       >
         <span className="relative block aspect-square w-full overflow-hidden">
           {FRAMES.map((src, frame) => (
@@ -85,7 +85,7 @@ export function CollectionsShowcase({
           </span>
         </span>
         <span className="flex flex-col gap-3 pb-2">
-          <span className={typography.heading}>Voir les collections</span>
+          <span className={`${typography.heading} hit-title`}>Voir les collections</span>
           <span className={typography.editorialSecondary}>{caption}</span>
         </span>
       </button>

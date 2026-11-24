@@ -89,6 +89,77 @@ body {
   font-family: "Source Serif 4", Georgia, serif;
 }
 
+/* Tout ce qui se clique prend la main. */
+a[href],
+button:not(:disabled),
+summary,
+[role="button"] {
+  cursor: pointer;
+}
+
+/* Le trait est déjà là, invisible. Au survol il prend la couleur du titre, en fondu. */
+.hit-title {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: transparent;
+}
+
+.hit-action,
+.chip,
+.chip-icon {
+  transition: background-color 200ms ease;
+}
+
+.chip {
+  --chip-rest: rgb(var(--color-accent-sand));
+}
+
+.chip-card {
+  --chip-rest: rgb(var(--color-surface-emphasis));
+}
+
+.chip-warm {
+  --chip-rest: rgb(var(--color-background-warm));
+}
+
+@media (hover: hover) {
+  .hit .hit-title {
+    transition: text-decoration-color 200ms ease;
+  }
+
+  .hit:hover .hit-title {
+    text-decoration-color: currentColor;
+  }
+
+  .hit:hover .hit-action,
+  .hit-action:hover {
+    background-color: rgb(var(--color-action-hover));
+  }
+
+  /* Le fond s'approfondit d'un cran. La pastille terracotta active aussi. */
+  .chip:hover {
+    background-color: color-mix(in srgb, rgb(var(--color-text)) 14%, var(--chip-rest));
+  }
+
+  .chip-line:hover {
+    background-color: rgb(var(--color-accent-sand));
+  }
+
+  .chip[aria-pressed='true']:hover {
+    background-color: rgb(var(--color-action-hover));
+  }
+
+  .chip-icon:hover {
+    background-color: color-mix(in srgb, currentColor 12%, transparent);
+  }
+}
+
+.hit-action:active,
+.hit:active .hit-action {
+  background-color: rgb(var(--color-action-pressed));
+}
+
 @layer utilities {
   .scrollbar-hidden {
     scrollbar-width: none;

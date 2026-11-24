@@ -584,12 +584,12 @@ function CollectionDocuments({ item, onOpen }: { item: CollectionCard; onOpen: (
     <button
       type="button"
       onClick={onOpen}
-      className="flex w-full items-start gap-3 bg-collections text-left text-[rgb(var(--color-background-warm))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-accent-sand))]"
+      className="hit flex w-full items-start gap-3 bg-collections text-left text-[rgb(var(--color-background-warm))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-accent-sand))]"
     >
       <img src={item.image} alt="" className="w-20 shrink-0 self-stretch object-cover" />
       <span className="flex min-w-0 flex-1 flex-col pb-2 pr-3 pt-3">
         <span className={`${typography.uiCategory} text-[rgb(var(--color-accent-clay))]`}>Collection à voir</span>
-        <span className={`${typography.cardTitleCompact} mt-1`}>{item.title}</span>
+        <span className={`${typography.cardTitleCompact} hit-title mt-1`}>{item.title}</span>
         <span className={`${typography.editorialSecondary} -mt-1`}>{item.documents}</span>
       </span>
     </button>
@@ -601,12 +601,12 @@ function ReadAlso({ item, onOpen }: { item: Suggestion; onOpen: () => void }) {
     <button
       type="button"
       onClick={onOpen}
-      className={`flex w-full min-h-20 items-start gap-3 bg-[rgb(var(--color-background-warm))] text-left ${focusRing}`}
+      className={`hit flex w-full min-h-20 items-start gap-3 bg-[rgb(var(--color-background-warm))] text-left ${focusRing}`}
     >
       <img src={RELATED_IMAGES[0]} alt="" className="w-20 shrink-0 self-stretch object-cover" />
       <span className="flex min-w-0 flex-1 flex-col gap-1 py-4 pr-3">
         <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]`}>À lire aussi</span>
-        <span className={typography.cardTitleCompact}>{item.title}</span>
+        <span className={`${typography.cardTitleCompact} hit-title`}>{item.title}</span>
       </span>
     </button>
   )
@@ -638,7 +638,7 @@ function RelatedRail({ items }: { items: AroundItem[] }) {
             key={item.title}
             type="button"
             onClick={item.open}
-            className={`flex w-60 shrink-0 flex-col gap-3 text-left ${focusRing}`}
+            className={`hit flex w-60 shrink-0 flex-col gap-3 text-left ${focusRing}`}
           >
             <img
               src={RELATED_IMAGES[index % RELATED_IMAGES.length]}
@@ -646,7 +646,7 @@ function RelatedRail({ items }: { items: AroundItem[] }) {
               className="h-60 w-full object-cover"
             />
             <span className="flex flex-col gap-2">
-              <span className={typography.cardTitleCompact}>{item.title}</span>
+              <span className={`${typography.cardTitleCompact} hit-title`}>{item.title}</span>
               <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]`}>
                 {item.label}
               </span>
@@ -751,12 +751,12 @@ export function EditorialArticle({
               href={article.documentsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`${typography.footerTitle} inline-flex min-h-11 items-center gap-2 self-start text-text ${focusRing}`}
+              className={`${typography.footerTitle} hit inline-flex min-h-11 items-center gap-2 self-start text-text ${focusRing}`}
             >
               <span aria-hidden className="grid size-[28px] shrink-0 place-items-center bg-action">
                 <IconCollections className="h-[14px] w-auto text-[rgb(var(--color-background-warm))]" />
               </span>
-              <span className="inline-flex items-center gap-2">
+              <span className="hit-title inline-flex items-center gap-2">
                 Voir les documents
                 <span aria-hidden>↗</span>
               </span>
@@ -852,7 +852,7 @@ export function EditorialArticle({
                 return (
                   <li key={tag.label}>
                     {tag.href ? (
-                      <button type="button" onClick={() => onPath(tag.href!)} className={className}>
+                      <button type="button" onClick={() => onPath(tag.href!)} className={`chip chip-line ${className}`}>
                         {tag.label}
                       </button>
                     ) : (

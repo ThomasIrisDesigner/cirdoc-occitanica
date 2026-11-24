@@ -106,7 +106,7 @@ export function ActionButton({
     <button
       type="button"
       onClick={onClick}
-      className={`${typography.uiAction} inline-flex h-11 items-center bg-action px-4 text-[rgb(var(--color-action-content))]`}
+      className={`${typography.uiAction} hit-action inline-flex h-11 items-center bg-action px-4 text-[rgb(var(--color-action-content))]`}
     >
       {children}
     </button>
@@ -152,6 +152,7 @@ function UneCarousel({ onDiscover }: { onDiscover: () => void }) {
   const windowRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const animating = useRef(false)
+  const swiped = useRef(false)
   const [windowW, setWindowW] = useState(358)
   const [pos, setPos] = useState(count)
   const [motion, setMotion] = useState(true)
@@ -215,7 +216,6 @@ function UneCarousel({ onDiscover }: { onDiscover: () => void }) {
         className="h-[337px] touch-pan-y overflow-hidden"
         onPointerDown={(event) => {
           if (event.button !== 0) return
-          if ((event.target as HTMLElement).closest('button')) return
           event.currentTarget.setPointerCapture(event.pointerId)
           event.currentTarget.dataset.dragX = String(event.clientX)
         }}
@@ -224,8 +224,12 @@ function UneCarousel({ onDiscover }: { onDiscover: () => void }) {
           delete event.currentTarget.dataset.dragX
           if (!Number.isFinite(start)) return
           const delta = event.clientX - start
-          if (delta > 48) shift(-1)
-          else if (delta < -48) shift(1)
+          if (Math.abs(delta) <= 48) return
+          swiped.current = true
+          window.setTimeout(() => {
+            swiped.current = false
+          }, 0)
+          shift(delta > 0 ? -1 : 1)
         }}
         onPointerCancel={(event) => {
           delete event.currentTarget.dataset.dragX
@@ -247,9 +251,16 @@ function UneCarousel({ onDiscover }: { onDiscover: () => void }) {
           {loop.map((slide, index) => {
             const isActive = index === pos
             return (
-              <article
+              <button
                 key={`${slide.image}-${index}`}
-                className="relative shrink-0 overflow-hidden"
+                type="button"
+                tabIndex={isActive ? 0 : -1}
+                aria-hidden={isActive ? undefined : true}
+                onClick={() => {
+                  if (swiped.current) return
+                  onDiscover()
+                }}
+                className="hit relative shrink-0 overflow-hidden text-left focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
                 style={{
                   width: isActive ? UNE_ACTIVE_W : UNE_SIDE_W,
                   height: isActive ? UNE_ACTIVE_H : UNE_SIDE_H,
@@ -270,9 +281,11 @@ function UneCarousel({ onDiscover }: { onDiscover: () => void }) {
                 />
                 <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 p-4">
                   <p className={`${typography.cardTitle} text-center text-[rgb(var(--color-text-inverse))]`}>{UNE_TITLE}</p>
-                  <ActionButton onClick={onDiscover}>Découvrir</ActionButton>
+                  <span className={`${typography.uiAction} hit-action inline-flex h-11 items-center bg-action px-4 text-[rgb(var(--color-action-content))]`}>
+                    Découvrir
+                  </span>
                 </div>
-              </article>
+              </button>
             )
           })}
         </div>
@@ -382,7 +395,7 @@ export function SiteHeader({
           aria-expanded={searchOpen}
           aria-haspopup="dialog"
           onClick={openSearch}
-          className={`grid size-12 place-items-center rounded-pill border ${control}`}
+          className={`chip-icon grid size-12 place-items-center rounded-pill border ${control}`}
         >
           <IconSearch className="size-[26px]" />
         </button>
@@ -392,7 +405,7 @@ export function SiteHeader({
           aria-expanded={menuOpen}
           aria-haspopup="dialog"
           onClick={openMenu}
-          className={`grid size-12 place-items-center rounded-pill border ${control}`}
+          className={`chip-icon grid size-12 place-items-center rounded-pill border ${control}`}
         >
           <IconMenu className="h-[18px] w-auto" />
         </button>
@@ -487,9 +500,9 @@ export function SiteFooter({ go }: { go: (screen: Screen) => void }) {
         <button
           type="button"
           onClick={() => go('partenaires')}
-          className="flex min-h-9 w-full items-center text-left"
+          className="hit flex min-h-9 w-full items-center text-left"
         >
-          Partenaires
+          <span className="hit-title">Partenaires</span>
         </button>
         {['Mentions légales et crédits', 'Entrepôt OAI-PMH', 'Informations sur les cookies'].map((label) => (
           <p key={label} className="flex min-h-9 items-center">{label}</p>
@@ -548,7 +561,7 @@ export function HomeView({
                     }
                   : undefined
               }
-              className="flex h-28 w-72 shrink-0 items-center gap-4 bg-[rgb(var(--color-surface-emphasis))] px-3 py-4 text-left"
+              className="chip chip-card flex h-28 w-72 shrink-0 items-center gap-4 bg-[rgb(var(--color-surface-emphasis))] px-3 py-4 text-left"
             >
               <img src={item.image} alt="" className="h-[62.72px] w-[50.58px] shrink-0" />
               <span className="min-w-0">
@@ -582,7 +595,7 @@ export function HomeView({
                     }
                   : undefined
               }
-              className={`${typography.uiLabel} shrink-0 rounded-pill bg-[rgb(var(--color-accent-sand))] px-4 py-2`}
+              className={`${typography.uiLabel} chip shrink-0 rounded-pill bg-[rgb(var(--color-accent-sand))] px-4 py-2`}
             >
               {item.label}
             </button>
@@ -592,10 +605,10 @@ export function HomeView({
 
       <section className="flex flex-col gap-6 px-4 py-10">
         <h2 className={typography.title}>Cultura viva !</h2>
-        <button type="button" onClick={() => onOpenGabarit('fetes')} className="block w-full text-left">
+        <button type="button" onClick={() => onOpenGabarit('fetes')} className="hit block w-full text-left">
           <img src={vivaHero} alt="" className="h-[180px] w-full object-cover" />
           <span className="flex flex-col gap-2 py-4">
-            <span className={typography.cardTitle}>Lorem ipsum dolor sit amet, consectetur adipiscing elit</span>
+            <span className={`${typography.cardTitle} hit-title`}>Lorem ipsum dolor sit amet, consectetur adipiscing elit</span>
             <span className={`${typography.editorialLead} text-[rgb(var(--color-text-secondary))]`}>
               Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem.
             </span>
@@ -607,11 +620,11 @@ export function HomeView({
             key={item.category}
             type="button"
             onClick={item.espace ? () => onOpenGabarit(item.espace!) : undefined}
-            className="flex w-full items-start gap-3 border-t border-border pt-6 text-left"
+            className="hit flex w-full items-start gap-3 border-t border-border pt-6 text-left"
           >
             <img src={item.image} alt="" className="size-20 shrink-0 object-cover" />
             <span className="min-w-0 flex-1">
-              <span className={`${typography.cardTitleCompact} block`}>{item.title}</span>
+              <span className={`${typography.cardTitleCompact} hit-title block`}>{item.title}</span>
               <span className={`${typography.uiCategory} mt-1 block text-[rgb(var(--color-text-brand))]`}>{item.category}</span>
             </span>
           </button>

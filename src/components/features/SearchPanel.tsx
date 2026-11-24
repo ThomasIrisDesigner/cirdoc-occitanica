@@ -121,7 +121,7 @@ export function SearchPanel({
             type="button"
             onClick={onClose}
             aria-label="Fermer la recherche"
-            className="grid size-12 place-items-center rounded-pill border border-[rgb(var(--color-action))]"
+            className="chip-icon grid size-12 place-items-center rounded-pill border border-[rgb(var(--color-action))]"
           >
             <svg viewBox="0 0 16 16" className="size-[22px]" fill="none" aria-hidden>
               <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />
@@ -132,7 +132,7 @@ export function SearchPanel({
             aria-label="Ouvrir le menu"
             aria-haspopup="dialog"
             onClick={onMenu}
-            className="grid size-12 place-items-center rounded-pill border border-border"
+            className="chip-icon grid size-12 place-items-center rounded-pill border border-border"
           >
             <IconMenu className="h-[18px] w-auto" />
           </button>
@@ -197,9 +197,9 @@ export function SearchPanel({
             href={GALLICA_ADVANCED}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-flex min-h-11 items-center gap-2 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
+            className="hit mt-2 inline-flex min-h-11 items-center gap-2 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
           >
-            <span className={typography.footerTitle}>Recherche avancée</span>
+            <span className={`${typography.footerTitle} hit-title`}>Recherche avancée</span>
             <ExternalMark />
             <span className="sr-only">, nouvel onglet</span>
           </a>
@@ -216,10 +216,10 @@ export function SearchPanel({
                   href={resource.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 flex-col justify-center gap-1 py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
+                  className="hit flex min-h-11 flex-col justify-center gap-1 py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
                 >
                   <span className="flex items-center gap-2">
-                    <span className={typography.footerTitle}>{resource.name}</span>
+                    <span className={`${typography.footerTitle} hit-title`}>{resource.name}</span>
                     <ExternalMark />
                   </span>
                   <span className={`${typography.editorialSecondary} text-[rgb(var(--color-text-secondary))]`}>

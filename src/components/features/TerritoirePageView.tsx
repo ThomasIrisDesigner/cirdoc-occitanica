@@ -106,7 +106,7 @@ export function TerritoirePageView({
               type="button"
               aria-pressed={active}
               onClick={() => setPlace(item)}
-              className={`${typography.uiLabel} shrink-0 rounded-pill px-3 py-2 ${
+              className={`${typography.uiLabel} chip shrink-0 rounded-pill px-3 py-2 ${
                 active ? 'bg-action text-[rgb(var(--color-action-content))]' : 'bg-[rgb(var(--color-accent-sand))]'
               }`}
             >
@@ -140,7 +140,7 @@ export function TerritoirePageView({
                   key={`${section.title}-${title}`}
                   type="button"
                   onClick={espace ? () => onOpenGabarit(espace) : undefined}
-                  className="flex w-60 shrink-0 flex-col gap-3 text-left"
+                  className="hit flex w-60 shrink-0 flex-col gap-3 text-left"
                 >
                   {SECTION_IMAGE[section.title] ? (
                     <img src={SECTION_IMAGE[section.title]} alt="" className="h-[140px] w-full object-cover" />
@@ -148,7 +148,7 @@ export function TerritoirePageView({
                     <span className="block h-[140px] w-full bg-[rgb(var(--color-surface-emphasis))]" />
                   )}
                   <span className="flex flex-col gap-2">
-                    <span className={typography.cardTitleCompact}>{title}</span>
+                    <span className={`${typography.cardTitleCompact} hit-title`}>{title}</span>
                     <span className={`${typography.uiCategory} text-[rgb(var(--color-text-brand))]`}>
                       {section.badge}
                     </span>

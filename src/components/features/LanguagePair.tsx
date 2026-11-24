@@ -43,7 +43,7 @@ export function LanguagePair({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
       }`}
     >
       {(['fr', 'oc'] as const).map((code) => (
-        <button key={code} type="button" onClick={() => choose(code)} className="inline-flex items-center px-2" aria-pressed={lang === code}>
+        <button key={code} type="button" onClick={() => choose(code)} className="chip-icon inline-flex items-center rounded-pill px-2" aria-pressed={lang === code}>
           {lang === code && <IconDot className="mr-1 size-1.5 text-[rgb(var(--color-action))]" />}
           <span className={lang === code ? typography.uiLangActive : typography.uiLangInactive}>{code.toUpperCase()}</span>
         </button>
