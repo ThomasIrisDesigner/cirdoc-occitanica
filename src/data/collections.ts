@@ -82,14 +82,14 @@ export type CollectionCard = {
   title: string
   documents: string
   image: string
-  href: '#'
+  href: string
 }
 
 export type ImageCollection = {
   title: string
   description: string
   image: string
-  href: '#'
+  href: string
 }
 
 export const DOCUMENTS_REMARQUABLES: RemarkableDocument[] = [
