@@ -19,6 +19,7 @@ import {
   type EditorialBlock,
   type TextRun,
 } from '@/data/editorialArticle'
+import type { InstitutionPageContent } from '@/data/institutionPages'
 import type { EspaceKey, Screen } from '@/lib/prototypeRoutes'
 import { typography } from '@/styles/typography'
 
@@ -32,11 +33,13 @@ type AroundItem = {
   open: () => void
 }
 
+type ReadingPage = EditorialArticleContent | InstitutionPageContent
+
 type EditorialArticleProps = {
   onNavigate: (screen: Screen) => void
   onPath: (path: string) => void
   crumbs: Crumb[]
-  article?: EditorialArticleContent
+  article?: ReadingPage
 }
 
 const RELATED_IMAGES = [uneB, uneA, uneD, uneC]
@@ -51,8 +54,7 @@ const SPACE_NAME: Record<EspaceKey, string> = {
   cadre: 'Plein cadre',
 }
 
-const focusRing =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]'
+const focusRing = 'focus-ring'
 
 function scrollRow(row: HTMLDivElement | null, direction: -1 | 1) {
   if (!row) return
@@ -135,7 +137,7 @@ function InlineText({
   if (typeof runs === 'string') return runs
   const line =
     tone === 'action'
-      ? 'decoration-[rgb(var(--color-action))] decoration-[1.5px] underline-offset-[3px]'
+      ? 'link-inline decoration-[rgb(var(--color-action))]'
       : 'decoration-current'
   return runs.map((run, index) =>
     typeof run === 'string' ? (
@@ -174,7 +176,7 @@ function Legend({
 
   return (
     <figcaption
-      className={`flex flex-col gap-1 border-l border-[rgb(var(--color-border))] py-1 pl-[17px] pr-4 ${className}`}
+      className={`flex flex-col gap-1 border-l border-[rgb(var(--color-border))] py-1 pl-[var(--inset-legend)] pr-4 ${className}`}
     >
       <p className={typography.uiCaption}>
         <InlineText runs={caption} onPath={onPath} tone="text" />
@@ -209,16 +211,16 @@ function Legend({
 function ArticleClose() {
   return (
     <div className="flex items-center justify-center gap-2 p-6" aria-hidden>
-      <img src={filetLine} alt="" className="block h-[4px] min-w-0 flex-1" />
-      <img src={filetMark} alt="" className="block h-[14.833px] w-[20px] shrink-0" />
-      <img src={filetLine} alt="" className="block h-[4px] min-w-0 flex-1" />
+      <img src={filetLine} alt="" className="block h-[var(--size-filet-line)] min-w-0 flex-1" />
+      <img src={filetMark} alt="" className="block h-[var(--size-filet)] w-5 shrink-0" />
+      <img src={filetLine} alt="" className="block h-[var(--size-filet-line)] min-w-0 flex-1" />
     </div>
   )
 }
 
 function QuoteMark() {
   return (
-    <svg viewBox="8 0 50 38.5" className="h-[39px] w-[50px] shrink-0 text-[rgb(var(--color-text-brand))]" aria-hidden>
+    <svg viewBox="8 0 50 38.5" className="h-[var(--size-quote-mark-h)] w-[var(--size-quote-mark-w)] shrink-0 text-[rgb(var(--color-text-brand))]" aria-hidden>
       <path
         fill="currentColor"
         d="M18.5183 38.4146C16.9939 38.4146 15.4695 38.1098 13.9451 37.5C12.5224 36.8902 11.2012 36.0264 9.98171 34.9085C9.37195 33.4858 8.86382 32.063 8.45732 30.6402C8.15244 29.1159 8 27.5915 8 26.0671C8 21.2907 8.91463 17.2256 10.7439 13.8719C12.6748 10.4167 15.1646 7.57113 18.2134 5.33536C21.2622 2.99796 24.4634 1.21951 27.8171 0L29.3415 3.35365C26.8008 4.67479 24.6159 5.99593 22.7866 7.31707C20.9573 8.53658 19.4329 10.0102 18.2134 11.7378C16.9939 13.4654 15.8252 15.7012 14.7073 18.4451L13.9451 14.1768L22.0244 18.75C24.3618 19.9695 26.0386 21.4939 27.0549 23.3232C28.0711 25.0508 28.5793 26.7276 28.5793 28.3537C28.5793 31.1992 27.6138 33.5874 25.6829 35.5183C23.8537 37.4492 21.4654 38.4146 18.5183 38.4146ZM47.1768 38.4146C45.6524 38.4146 44.128 38.1098 42.6037 37.5C41.1809 36.8902 39.8598 36.0264 38.6402 34.9085C38.0305 33.4858 37.5224 32.063 37.1159 30.6402C36.811 29.1159 36.6585 27.5915 36.6585 26.0671C36.6585 21.2907 37.5732 17.2256 39.4024 13.8719C41.3333 10.4167 43.8232 7.57113 46.872 5.33536C49.9207 2.99796 53.122 1.21951 56.4756 0L58 3.35365C55.4594 4.67479 53.2744 5.99593 51.4451 7.31707C49.6159 8.53658 48.0915 10.0102 46.872 11.7378C45.6524 13.4654 44.4837 15.7012 43.3659 18.4451L42.6037 14.1768L50.6829 18.75C53.0203 19.9695 54.6972 21.4939 55.7134 23.3232C56.7297 25.0508 57.2378 26.7276 57.2378 28.3537C57.2378 31.1992 56.2724 33.5874 54.3415 35.5183C52.5122 37.4492 50.124 38.4146 47.1768 38.4146Z"
@@ -584,7 +586,7 @@ function CollectionDocuments({ item, onOpen }: { item: CollectionCard; onOpen: (
     <button
       type="button"
       onClick={onOpen}
-      className="hit flex w-full items-start gap-3 bg-collections text-left text-[rgb(var(--color-background-warm))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-accent-sand))]"
+      className="hit flex w-full items-start gap-3 bg-collections text-left text-[rgb(var(--color-background-warm))] focus-ring-sand"
     >
       <img src={item.image} alt="" className="w-20 shrink-0 self-stretch object-cover" />
       <span className="flex min-w-0 flex-1 flex-col pb-2 pr-3 pt-3">
@@ -669,38 +671,43 @@ export function EditorialArticle({
   article = EDITORIAL_ARTICLE,
 }: EditorialArticleProps) {
   const [sourcesOpen, setSourcesOpen] = useState(false)
+  const corpus = 'espace' in article ? article : undefined
   const chapters = groupChapters(article.blocks)
   const anchor = article.blocks.findIndex((block) => block.type === 'pair' || block.type === 'figure')
-  const inline = anchor >= 0 ? article.lireAussi : undefined
+  const inline = anchor >= 0 ? corpus?.lireAussi : undefined
   const readAlsoIndex =
     article.slug === 'titre-de-l-article' && article.blocks[anchor + 1]?.type === 'paragraph'
       ? anchor + 1
       : anchor
-  const collection = article.collection ? findCollectionCard(article.collection) : undefined
+  const collection = corpus?.collection ? findCollectionCard(corpus.collection) : undefined
   const lastParagraph = article.blocks.findLastIndex((block) => block.type === 'paragraph')
-  const seen = new Set<string>([article.title, ...article.suggestions.map((item) => item.title)])
-  const around: AroundItem[] = [
-    ...article.suggestions.map((item) => ({
-      title: item.title,
-      label: suggestionSpace(item.screen),
-      open: () => onNavigate(item.screen),
-    })),
-    ...articlesSharingTags(
-      article.espace,
-      article.tags.map((tag) => tag.label),
-    )
-      .filter((card) => {
-        if (seen.has(card.title)) return false
-        seen.add(card.title)
-        return true
-      })
-      .map((card) => ({
-        title: card.title,
-        label: SPACE_NAME[article.espace] ?? '',
-        open: () => onPath(gabaritPath(article.espace)),
-      })),
-  ]
-  const footerTags = [...article.tags, ...(article.rebonds ?? [])]
+  const suggestions = corpus?.suggestions ?? []
+  const tags = corpus?.tags ?? []
+  const seen = new Set<string>([article.title, ...suggestions.map((item) => item.title)])
+  const around: AroundItem[] = corpus
+    ? [
+        ...suggestions.map((item) => ({
+          title: item.title,
+          label: suggestionSpace(item.screen),
+          open: () => onNavigate(item.screen),
+        })),
+        ...articlesSharingTags(
+          corpus.espace,
+          tags.map((tag) => tag.label),
+        )
+          .filter((card) => {
+            if (seen.has(card.title)) return false
+            seen.add(card.title)
+            return true
+          })
+          .map((card) => ({
+            title: card.title,
+            label: SPACE_NAME[corpus.espace] ?? '',
+            open: () => onPath(gabaritPath(corpus.espace)),
+          })),
+      ]
+    : []
+  const footerTags = [...tags, ...(corpus?.rebonds ?? [])]
   let cursor = 0
 
   return (
@@ -746,15 +753,15 @@ export function EditorialArticle({
             </nav>
           ) : null}
           <h1 className={typography.articleTitle}>{article.title}</h1>
-          {article.documentsUrl ? (
+          {corpus?.documentsUrl ? (
             <a
-              href={article.documentsUrl}
+              href={corpus.documentsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className={`${typography.footerTitle} hit inline-flex min-h-11 items-center gap-2 self-start text-text ${focusRing}`}
             >
-              <span aria-hidden className="grid size-[28px] shrink-0 place-items-center bg-action">
-                <IconCollections className="h-[14px] w-auto text-[rgb(var(--color-background-warm))]" />
+              <span aria-hidden className="grid size-[var(--size-collections-mark)] shrink-0 place-items-center bg-action">
+                <IconCollections className="h-[var(--size-icon-collections)] w-auto text-[rgb(var(--color-background-warm))]" />
               </span>
               <span className="hit-title inline-flex items-center gap-2">
                 Voir les documents
@@ -763,19 +770,23 @@ export function EditorialArticle({
               <span className="sr-only">, nouvel onglet</span>
             </a>
           ) : null}
-          <p className={`${typography.uiCaption} text-[rgb(var(--color-text-secondary))]`}>
-            {authorLine(article.author)}
-          </p>
+          {corpus?.author ? (
+            <p className={`${typography.uiCaption} text-[rgb(var(--color-text-secondary))]`}>
+              {authorLine(corpus.author)}
+            </p>
+          ) : null}
         </header>
 
-        <figure className="bg-[rgb(var(--color-background-warm))]">
-          <div className="h-[220px] overflow-hidden bg-[rgb(var(--color-text))]">
-            <Photo src={article.heroSrc} alt="" />
-          </div>
-        </figure>
+        {article.heroSrc ? (
+          <figure className="bg-[rgb(var(--color-background-warm))]">
+            <div className="h-[220px] overflow-hidden bg-[rgb(var(--color-text))]">
+              <Photo src={article.heroSrc} alt="" />
+            </div>
+          </figure>
+        ) : null}
 
         <div className="flex flex-col gap-10 px-6 py-10">
-          <p className={typography.editorialIntro}>{article.chapo}</p>
+          {article.chapo ? <p className={typography.editorialIntro}>{article.chapo}</p> : null}
           {chapters.map((chapter, chapterIndex) => (
             <div key={chapterIndex} className="flex flex-col gap-6">
               {chapter.map((block) => {
@@ -799,7 +810,7 @@ export function EditorialArticle({
 
         <ArticleClose />
 
-        {article.sources?.length ? (
+        {corpus?.sources?.length ? (
           <section className="px-6 pt-6 pb-12">
             <h2 className="sr-only">Sources et références</h2>
             <div className="border border-[rgb(var(--color-border))] p-4">
@@ -822,7 +833,7 @@ export function EditorialArticle({
               </button>
               {sourcesOpen ? (
                 <ul className="mt-4">
-                  {article.sources.map((source, index) => (
+                  {corpus.sources.map((source, index) => (
                     <li
                       key={index}
                       className="border-t border-[rgb(var(--color-border))] py-4 last:pb-0"

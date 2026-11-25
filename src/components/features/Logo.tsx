@@ -5,7 +5,7 @@ import logoWordLight from '@/assets/home/logo-word-light.svg'
 
 export function Logo({ light = false, compact = false }: { light?: boolean; compact?: boolean }) {
   return (
-    <span className={`relative block ${compact ? 'h-12 w-[50px]' : 'h-16 w-[66px]'}`}>
+    <span className={`relative block ${compact ? 'h-12 w-[var(--size-logo-compact-w)]' : 'h-16 w-[var(--size-logo-w)]'}`}>
       <img
         src={light ? logoMarkLight : logoMark}
         alt=""

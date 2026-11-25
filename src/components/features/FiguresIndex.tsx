@@ -76,7 +76,7 @@ export function FiguresIndex({ onOpen }: { onOpen: () => void }) {
                 aria-pressed={active}
                 aria-expanded={active}
                 onClick={() => setOpen(active ? null : letter)}
-                className={`${typography.cardTitleCompact} chip chip-warm grid size-10 shrink-0 place-items-center rounded-pill focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))] ${
+                className={`${typography.cardTitleCompact} chip chip-warm grid size-10 shrink-0 place-items-center rounded-pill focus-ring ${
                   active
                     ? 'bg-action text-[rgb(var(--color-action-content))]'
                     : 'bg-[rgb(var(--color-background-warm))] text-text'
@@ -94,7 +94,7 @@ export function FiguresIndex({ onOpen }: { onOpen: () => void }) {
                 <button
                   type="button"
                   onClick={onOpen}
-                  className="group hit flex w-full items-center gap-4 px-4 py-2 text-left transition-colors hover:bg-[rgb(var(--color-background-warm))] active:bg-[rgb(var(--color-background-warm))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
+                  className="group hit flex w-full items-center gap-4 px-4 py-2 text-left transition-colors hover:bg-[rgb(var(--color-background-warm))] active:bg-[rgb(var(--color-background-warm))] focus-ring"
                 >
                   {person.image ? (
                     <img

@@ -95,7 +95,7 @@ export function CollectionsShowcase({
           aria-pressed={paused}
           aria-label={paused ? 'Relancer le défilement des visuels' : 'Mettre en pause le défilement des visuels'}
           onClick={() => setPaused((current) => !current)}
-          className="z-10 col-start-1 row-start-1 mr-2 mt-[calc(100%-40px)] grid size-8 place-items-center self-start justify-self-end bg-[rgb(var(--color-text)/0.8)] text-[rgb(var(--color-background-warm))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-background-warm))]"
+          className="z-10 col-start-1 row-start-1 mr-2 mt-[calc(100%-40px)] grid size-8 place-items-center self-start justify-self-end bg-[rgb(var(--color-text)/0.8)] text-[rgb(var(--color-background-warm))] focus-ring-warm"
         >
           {paused ? <IconPlay /> : <IconPause />}
         </button>

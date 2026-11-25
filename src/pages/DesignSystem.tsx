@@ -1,11 +1,7 @@
 import * as React from 'react'
 import { Link } from 'react-router-dom'
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { SearchField } from '@/components/features/SearchPanel'
 import { PROJECT_DISPLAY_NAME } from '@/config/project'
 import { typography, typeScale } from '@/styles/typography'
 
@@ -145,9 +141,12 @@ function Section({
 
 export function DesignSystem() {
   const [colors, setColors] = React.useState<ColorVar[]>([])
+  const [tokens, setTokens] = React.useState<Record<string, string>>({})
+  const [query, setQuery] = React.useState('boha')
 
   React.useEffect(() => {
     const vars = readCssVariablesFromRoot()
+    setTokens(vars)
     const list = Object.entries(vars)
       .filter(([k]) => k.startsWith('--color-'))
       .map(([name, value]) => ({
@@ -173,22 +172,17 @@ export function DesignSystem() {
     return groups
   }, [colors])
 
-  const spacing = [
-    { px: 4, tw: 'p-1' },
-    { px: 8, tw: 'p-2' },
-    { px: 12, tw: 'p-3' },
-    { px: 16, tw: 'p-4' },
-    { px: 24, tw: 'p-6' },
-    { px: 32, tw: 'p-8' },
-    { px: 40, tw: 'p-10' },
-    { px: 48, tw: 'p-12' },
-  ] as const
+  const spaceTokens = Object.entries(tokens)
+    .filter(([name]) => name.startsWith('--space-') || name.startsWith('--gutter-') || name === '--size-touch')
+    .sort(([a], [b]) => a.localeCompare(b, 'fr', { numeric: true }))
 
-  const radii = [
-    { label: 'Contrôle', tw: 'rounded-control', px: 4 },
-    { label: 'Carte', tw: 'rounded-card', px: 12 },
-    { label: 'Pilule', tw: 'rounded-pill', px: 999 },
-  ] as const
+  const radiusTokens = Object.entries(tokens)
+    .filter(([name]) => name.startsWith('--radius-'))
+    .sort(([a], [b]) => a.localeCompare(b))
+
+  const measureTokens = Object.entries(tokens)
+    .filter(([name]) => name.startsWith('--size-') && name !== '--size-touch')
+    .sort(([a], [b]) => a.localeCompare(b))
 
   return (
     <div className="min-h-dvh bg-background text-text">
@@ -213,6 +207,9 @@ export function DesignSystem() {
           </a>
           <a className="hover:text-text" href="#rayons">
             Rayons
+          </a>
+          <a className="hover:text-text" href="#ombres">
+            Ombres
           </a>
           <a className="hover:text-text" href="#espacement">
             Espacement
@@ -265,7 +262,8 @@ export function DesignSystem() {
           <Section id="typographie" title="TYPOGRAPHIE">
             <p className="mb-6 text-sm text-[rgb(var(--color-text-secondary))]">
               Bricolage Grotesque pour l’interface, Source Serif 4 pour la lecture.
-              L’interligne 1.2 fige l’interligne auto des titres 40 et 34 px.
+              Les classes <code>type-*</code> lisent les variables <code>--font-size-*</code>.
+              Les titres de page restent à 40 px, les titres d’article à 34 px.
             </p>
             <div className="grid gap-4">
               {typeScale.map((t) => (
@@ -289,165 +287,128 @@ export function DesignSystem() {
 
           <Section id="rayons" title="RAYONS">
             <div className="flex flex-wrap gap-6">
-              {radii.map((r) => (
-                <div key={r.label} className="grid gap-2">
-                  <div className={`h-16 w-28 border border-[rgb(var(--color-border-strong))] bg-[rgb(var(--color-accent-sand))] ${r.tw}`} />
-                  <p className="text-xs font-semibold text-text">{r.label}</p>
-                  <p className="text-xs text-[rgb(var(--color-text-secondary))]">
-                    {r.px}px · {r.tw}
-                  </p>
+              {radiusTokens.map(([name, value]) => (
+                <div key={name} className="grid gap-2">
+                  <div
+                    className="h-16 w-28 border border-[rgb(var(--color-border-strong))] bg-[rgb(var(--color-accent-sand))]"
+                    style={{ borderRadius: value }}
+                  />
+                  <p className="text-xs font-semibold text-text">{name}</p>
+                  <p className="text-xs text-[rgb(var(--color-text-secondary))]">{value}</p>
                 </div>
               ))}
             </div>
+            <p className="mt-4 text-sm text-[rgb(var(--color-text-secondary))]">
+              Les boutons d’action et les photos sont à angle droit. Le rayon de carte est défini et n’est pas utilisé sur les écrans habillés. Les pastilles sociales sont des cercles via <code>--radius-pill</code>.
+            </p>
+          </Section>
+
+          <Section id="ombres" title="OMBRES">
+            <p className="text-sm text-[rgb(var(--color-text-secondary))]">
+              Aucune ombre. La profondeur vient des aplats : sable, terracotta, noir des collections.
+            </p>
           </Section>
 
           <Section id="espacement" title="ESPACEMENT">
-            <div className="grid gap-3">
-              {spacing.map((s) => (
-                <div
-                  key={s.px}
-                  className="grid grid-cols-[64px_1fr_90px] items-center gap-4"
-                >
-                  <p className="text-xs font-semibold text-text">{s.px}px</p>
-                  <div className="h-3 rounded bg-primary/20">
-                    <div
-                      className="h-3 rounded bg-primary"
-                      style={{ width: `${s.px}px` }}
-                    />
+            <p className="mb-6 text-sm text-[rgb(var(--color-text-secondary))]">
+              Le bloc sable est le padding réel de la variable. <code>--gutter-page</code> (16 px) est la marge de la home, des espaces et des collections. <code>--gutter-prose</code> (24 px) est la marge de l’article, du menu et de la recherche. <code>--size-touch</code> (44 px) est la cible tactile, pas une marge.
+            </p>
+            <div className="grid gap-4">
+              {spaceTokens.map(([name, value]) => (
+                <div key={name} className="grid gap-2">
+                  <p className="text-xs font-semibold text-text">
+                    {name} · {value}
+                  </p>
+                  <div className="bg-[rgb(var(--color-accent-sand))]" style={{ padding: value }}>
+                    <div className="bg-surface py-2 text-xs text-[rgb(var(--color-text-secondary))]">contenu</div>
                   </div>
-                  <p className="text-xs text-text/70">{s.tw}</p>
                 </div>
               ))}
             </div>
+            {measureTokens.length > 0 ? (
+              <div className="mt-10">
+                <h3 className="text-sm font-semibold text-text/80">Mesures de composants</h3>
+                <p className="mt-2 text-sm text-[rgb(var(--color-text-secondary))]">
+                  Valeurs de maquette conservées au pixel. Ce ne sont pas des pas de la grille.
+                </p>
+                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {measureTokens.map(([name, value]) => (
+                    <li key={name} className="text-xs text-text">
+                      <span className="font-semibold">{name}</span>
+                      <span className="text-[rgb(var(--color-text-secondary))]"> · {value}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </Section>
 
           <Section id="composants" title="COMPOSANTS">
-            <div className="grid gap-6">
-              <Card>
-                <CardHeader>
-                  <h3 className="text-sm font-semibold">Boutons</h3>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4 flex flex-wrap items-center gap-3">
-                    <button
-                      type="button"
-                      className={`${typography.uiAction} inline-flex h-8 items-center rounded-pill bg-action px-4 text-[rgb(var(--color-action-content))] hover:bg-[rgb(var(--color-action-hover))]`}
-                    >
-                      Découvrir
-                    </button>
-                    <p className="text-xs text-[rgb(var(--color-text-secondary))]">
-                      Bouton produit · bg-action
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-3">
-                    <Button variant="default">Default</Button>
-                    <Button variant="outline">Outline</Button>
-                    <Button variant="secondary">Secondary</Button>
-                    <Button variant="destructive">Destructive</Button>
-                    <Button variant="ghost">Ghost</Button>
-                  </div>
-                </CardContent>
-              </Card>
+            <p className="mb-6 text-sm text-[rgb(var(--color-text-secondary))]">
+              Composants du site. Survolez-les pour voir l’état hover. Le focus clavier utilise <code>.focus-ring</code>. Il n’y a pas d’état disabled ni d’erreur de formulaire dans la direction artistique.
+            </p>
+            <div className="grid gap-10">
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold">Bouton d’action</h3>
+                <button type="button" className={`${typography.uiAction} hit-action inline-flex h-11 items-center bg-action px-4 text-[rgb(var(--color-action-content))] focus-ring`}>
+                  Découvrir
+                </button>
+                <p className="text-xs text-[rgb(var(--color-text-secondary))]">
+                  Repos <code>--color-action</code> · survol et pression <code>--color-action-hover</code> / <code>--color-action-pressed</code> · texte <code>--color-action-content</code> · hauteur <code>--size-touch</code> · rayon 0
+                </p>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <h3 className="text-sm font-semibold">Inputs</h3>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
-                      <p className="text-xs font-semibold text-text/70">
-                        Normal
-                      </p>
-                      <Input placeholder="Placeholder" />
-                    </div>
-                    <div className="grid gap-2">
-                      <p className="text-xs font-semibold text-text/70">
-                        Focus
-                      </p>
-                      <Input autoFocus placeholder="AutoFocus" />
-                    </div>
-                    <div className="grid gap-2">
-                      <p className="text-xs font-semibold text-text/70">
-                        Erreur
-                      </p>
-                      <Input
-                        placeholder="Erreur"
-                        className="border-danger focus-visible:ring-danger/30"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <p className="text-xs font-semibold text-text/70">
-                        Disabled
-                      </p>
-                      <Input placeholder="Disabled" disabled />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold">Pastilles</h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button type="button" className={`${typography.uiLabel} chip rounded-pill bg-[rgb(var(--color-accent-sand))] px-4 py-2 focus-ring`}>
+                    Instruments
+                  </button>
+                  <button type="button" aria-pressed="true" className={`${typography.uiLabel} chip rounded-pill bg-action px-3 py-2 text-[rgb(var(--color-action-content))] focus-ring`}>
+                    Tout
+                  </button>
+                  <button type="button" className={`${typography.uiCaption} chip chip-line inline-flex items-center rounded-pill border border-[rgb(var(--color-border))] px-3 py-2 focus-ring`}>
+                    Tag
+                  </button>
+                </div>
+                <p className="text-xs text-[rgb(var(--color-text-secondary))]">
+                  Repos sable · active terracotta · contour pour un tag d’article. Au survol, le fond s’approfondit. La pastille active passe sur <code>--color-action-hover</code>.
+                </p>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <h3 className="text-sm font-semibold">Badges</h3>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-3">
-                    <Badge variant="default">Default</Badge>
-                    <Badge variant="secondary">Secondary</Badge>
-                    <Badge variant="outline">Outline</Badge>
-                    <Badge variant="destructive">Destructive</Badge>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="grid gap-3">
+                <h3 className="text-sm font-semibold">Lien éditorial</h3>
+                <a href="#composants" className="hit inline-flex focus-ring">
+                  <span className={`${typography.cardTitleCompact} hit-title`}>Les rondeaux gascons</span>
+                </a>
+                <p className="text-xs text-[rgb(var(--color-text-secondary))]">
+                  Le souligné est déjà là, invisible. Au survol il prend la couleur du titre en <code>--motion-hover</code>. L’image ne bouge pas.
+                </p>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <h3 className="text-sm font-semibold">Cards</h3>
-                </CardHeader>
-                <CardContent>
-                  <Card className="max-w-md">
-                    <CardHeader>
-                      <h4 className="text-sm font-semibold">Titre de card</h4>
-                      <p className="text-sm text-text/70">
-                        Sous-titre discret
-                      </p>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-text/70">
-                        Exemple de contenu dans une card.
-                      </p>
-                    </CardContent>
-                  </Card>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <h3 className="text-sm font-semibold">Alerts</h3>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-3">
-                    <Alert variant="info">
-                      <AlertTitle>Info</AlertTitle>
-                      <AlertDescription>
-                        Message d'information.
-                      </AlertDescription>
-                    </Alert>
-                    <Alert variant="success">
-                      <AlertTitle>Succès</AlertTitle>
-                      <AlertDescription>
-                        Action réalisée avec succès.
-                      </AlertDescription>
-                    </Alert>
-                    <Alert variant="error">
-                      <AlertTitle>Erreur</AlertTitle>
-                      <AlertDescription>
-                        Une erreur est survenue.
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="grid max-w-md gap-3">
+                <h3 className="text-sm font-semibold">Champ de recherche</h3>
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault()
+                  }}
+                >
+                  <SearchField
+                    id="design-system-search"
+                    labelledBy="design-system-search-label"
+                    placeholder="Que recherchez-vous ?"
+                    value={query}
+                    onChange={setQuery}
+                    submitLabel="Lancer la recherche"
+                  />
+                </form>
+                <p id="design-system-search-label" className="sr-only">
+                  Recherche
+                </p>
+                <p className="text-xs text-[rgb(var(--color-text-secondary))]">
+                  Hauteur 48 px, rayon <code>--radius-pill</code>, texte <code>.type-field</code>. Le focus colore le contour en <code>--color-focus</code>. Une recherche sans résultat affiche « Aucun article », pas un état d’erreur.
+                </p>
+              </div>
             </div>
           </Section>
         </div>

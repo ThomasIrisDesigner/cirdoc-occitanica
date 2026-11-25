@@ -73,7 +73,7 @@ export function TerritoirePageView({
             aria-expanded={mapOpen}
             aria-controls="territoire-carte"
             onClick={() => setMapOpen((open) => !open)}
-            className={`${typography.editorialLead} underline decoration-[rgb(var(--color-text-secondary))] underline-offset-[3px]`}
+            className={`${typography.editorialLead} underline decoration-[rgb(var(--color-text-secondary))] underline-offset-[var(--underline-offset)]`}
           >
             {mapOpen ? 'Fermer' : 'Carte'}
           </button>

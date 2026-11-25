@@ -1,6 +1,24 @@
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
 
+/* Les pas Tailwind (p-4, gap-6, h-11…) lisent ces variables.
+   --space-* est défini plus bas, sur :root. */
+@theme {
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-7: var(--space-7);
+  --spacing-8: var(--space-8);
+  --spacing-9: var(--space-9);
+  --spacing-10: var(--space-10);
+  --spacing-11: var(--space-11);
+  --spacing-12: var(--space-12);
+  --spacing-16: var(--space-16);
+}
+
 :root {
   /* Chrome du prototype (barre Thomas Iris, composants shadcn). */
   --color-primary: 2 6 23; /* slate-950 */
@@ -46,8 +64,174 @@
   --color-collections-deep: 22 21 20; /* cadre posé sur le fond collections */
 
   --radius-control: 4px;
-  --radius-card: 12px;
+  --radius-card: 12px; /* défini, pas utilisé par les écrans habillés */
   --radius-pill: 999px;
+
+  /* Échelle 4 px. Les noms Tailwind p-4, gap-6, h-11 pointent ici. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-11: 44px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Deux gouttières, toutes deux déjà en place. Ne pas les fusionner. */
+  --gutter-page: var(--space-4);
+  --gutter-prose: var(--space-6);
+  --size-touch: var(--space-11);
+  --motion-hover: 200ms;
+  --underline-offset: 3px;
+  --underline-thickness: 1px;
+  --underline-inline: 1.5px;
+
+  /* Mesures de composants conservées telles quelles. */
+  --size-header: 88px;
+  --size-mark-w: 50.58px;
+  --size-mark-h: 62.72px;
+  --inset-legend: 17px;
+  --offset-collections-mark: 11px;
+  --size-filet: 14.833px;
+  --size-filet-line: 4px;
+  --size-icon-search: 26px;
+  --size-icon-22: 22px;
+  --size-icon-contact: 21px;
+  --size-icon-18: 18px;
+  --size-icon-collections: 14px;
+  --size-logo-w: 66px;
+  --size-logo-compact-w: 50px;
+  --size-quote-mark-w: 50px;
+  --size-quote-mark-h: 39px;
+
+  /* Familles. */
+  --font-ui: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-reading: "Source Serif 4", Georgia, serif;
+
+  /* Rôles typographiques mobile. Une variable par rôle, pour qu'un
+     écran desktop puisse en surcharger un sans toucher aux autres. */
+  --font-size-display: 40px;
+  --font-leading-display: 1.2;
+  --font-weight-display: 800;
+
+  --font-size-title: 40px;
+  --font-leading-title: 1.2;
+  --font-weight-title: 700;
+
+  --font-size-article-title: 34px;
+  --font-leading-article-title: 1.2;
+  --font-weight-article-title: 700;
+
+  --font-size-result: 1.5rem; /* 24 px, même valeur que text-2xl */
+  --font-leading-result: 1.2;
+  --font-weight-result: 700;
+
+  --font-size-heading: 20px;
+  --font-leading-heading: 24px;
+  --font-weight-heading: 700;
+
+  --font-size-menu-item: 20px;
+  --font-leading-menu-item: 24px;
+  --font-weight-menu-item: 500;
+
+  --font-size-menu-quiet: 16px;
+  --font-leading-menu-quiet: 24px;
+  --font-weight-menu-quiet: 400;
+
+  --font-size-card-title: 18px;
+  --font-leading-card-title: 28px;
+  --font-weight-card-title: 700;
+
+  --font-size-card-compact: 16px;
+  --font-leading-card-compact: 24px;
+  --font-weight-card-compact: 600;
+
+  --font-size-tile-title: 22px;
+  --font-leading-tile-title: 1;
+  --font-weight-tile-title: 700;
+  --font-tracking-tile-title: 1px;
+
+  --font-size-reading: 18px;
+  --font-leading-reading: 30px;
+  --font-weight-reading: 400;
+
+  --font-size-intro: 20px;
+  --font-leading-intro: 30px;
+  --font-weight-intro: 600;
+
+  --font-size-quote: 30px;
+  --font-leading-quote: 34px;
+  --font-weight-quote: 600;
+  --font-tracking-quote: -0.01em;
+
+  --font-size-quote-mark: 96px;
+  --font-leading-quote-mark: 72px;
+  --font-weight-quote-mark: 700;
+
+  --font-size-lead: 14px;
+  --font-leading-lead: 22px;
+  --font-weight-lead: 400;
+
+  --font-size-secondary: 13px;
+  --font-leading-secondary: 20px;
+  --font-weight-secondary: 400;
+
+  --font-size-action: 13px;
+  --font-leading-action: 16px;
+  --font-weight-action: 700;
+  --font-tracking-action: 1px;
+
+  --font-size-label: 12px;
+  --font-leading-label: 18px;
+  --font-weight-label: 600;
+
+  --font-size-category: 11px;
+  --font-leading-category: 16px;
+  --font-weight-category: 600;
+  --font-tracking-category: 1px;
+
+  --font-size-caption: 12px;
+  --font-leading-caption: 16px;
+  --font-weight-caption: 400;
+
+  --font-size-credit: 10px;
+  --font-leading-credit: 16px;
+  --font-weight-credit: 400;
+
+  --font-size-lang: 12px;
+  --font-leading-lang: 18px;
+  --font-weight-lang-active: 700;
+  --font-weight-lang-inactive: 500;
+
+  --font-size-action-secondary: 16px;
+  --font-leading-action-secondary: 18px;
+  --font-weight-action-secondary: 700;
+
+  --font-size-footer-kicker: 12px;
+  --font-leading-footer-kicker: 18px;
+  --font-weight-footer-kicker: 700;
+  --font-tracking-footer-kicker: 1.5px;
+
+  --font-size-footer-title: 14px;
+  --font-leading-footer-title: 20px;
+  --font-weight-footer-title: 600;
+
+  --font-size-footer-link: 13px;
+  --font-leading-footer-link: 20px;
+  --font-weight-footer-link: 400;
+
+  --font-size-footer-quiet: 12px;
+  --font-leading-footer-quiet: 20px;
+  --font-weight-footer-quiet: 400;
+
+  --font-size-field: 16px;
+  --font-leading-field: 24px;
+  --font-weight-field: 400;
 
   /* Occitanica — palette wireframes (v1), encore utilisée par les écrans non habillés. */
   --occ-dark: 24 24 27; /* #18181b */
@@ -69,6 +253,17 @@
   --occ-espace-cadre: 113 113 122;
 }
 
+/* Desktop. Pas de media query : le prototype mobile est un cadre de 390 px
+   posé sur un écran large, et une media query changerait aussi l'intérieur du cadre.
+   Quand la maquette desktop sera validée, surcharger les variables ici.
+   Ne pas réduire --font-size-title (40 px) ni --font-size-article-title (34 px). */
+.layout-desktop {
+  --gutter-page: var(--space-4);
+  --gutter-prose: var(--space-6);
+  --font-size-display: 40px;
+  --font-size-title: 40px;
+}
+
 html,
 body {
   height: 100%;
@@ -82,11 +277,256 @@ body {
 
 /* Interface : Bricolage Grotesque. Lecture : Source Serif 4. */
 .font-ui {
-  font-family: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-ui);
 }
 
 .font-editorial {
-  font-family: "Source Serif 4", Georgia, serif;
+  font-family: var(--font-reading);
+}
+
+/* Rôles. Pas de couleur ici : elle se pose au composant. */
+.type-display {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-display);
+  line-height: var(--font-leading-display);
+}
+
+.type-title {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-title);
+  line-height: var(--font-leading-title);
+}
+
+.type-article-title {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-article-title);
+  font-weight: var(--font-weight-article-title);
+  line-height: var(--font-leading-article-title);
+}
+
+.type-result {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-result);
+  font-weight: var(--font-weight-result);
+  line-height: var(--font-leading-result);
+}
+
+.type-heading {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--font-leading-heading);
+}
+
+.type-menu-item {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-menu-item);
+  font-weight: var(--font-weight-menu-item);
+  line-height: var(--font-leading-menu-item);
+}
+
+.type-menu-item-quiet {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-menu-quiet);
+  font-weight: var(--font-weight-menu-quiet);
+  line-height: var(--font-leading-menu-quiet);
+}
+
+.type-card-title {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-card-title);
+  line-height: var(--font-leading-card-title);
+}
+
+.type-card-title-compact {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-card-compact);
+  font-weight: var(--font-weight-card-compact);
+  line-height: var(--font-leading-card-compact);
+}
+
+.type-tile-title {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-tile-title);
+  font-weight: var(--font-weight-tile-title);
+  line-height: var(--font-leading-tile-title);
+  letter-spacing: var(--font-tracking-tile-title);
+}
+
+.type-reading {
+  font-family: var(--font-reading);
+  font-size: var(--font-size-reading);
+  font-weight: var(--font-weight-reading);
+  line-height: var(--font-leading-reading);
+}
+
+.type-editorial-intro {
+  font-family: var(--font-reading);
+  font-size: var(--font-size-intro);
+  font-weight: var(--font-weight-intro);
+  line-height: var(--font-leading-intro);
+}
+
+.type-pull-quote {
+  font-family: var(--font-reading);
+  font-size: var(--font-size-quote);
+  font-weight: var(--font-weight-quote);
+  line-height: var(--font-leading-quote);
+  letter-spacing: var(--font-tracking-quote);
+}
+
+.type-editorial-quote-mark {
+  font-family: var(--font-reading);
+  font-size: var(--font-size-quote-mark);
+  font-weight: var(--font-weight-quote-mark);
+  line-height: var(--font-leading-quote-mark);
+}
+
+.type-editorial-lead {
+  font-family: var(--font-reading);
+  font-size: var(--font-size-lead);
+  font-weight: var(--font-weight-lead);
+  line-height: var(--font-leading-lead);
+}
+
+.type-editorial-secondary {
+  font-family: var(--font-reading);
+  font-size: var(--font-size-secondary);
+  font-weight: var(--font-weight-secondary);
+  line-height: var(--font-leading-secondary);
+}
+
+.type-ui-action {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-action);
+  font-weight: var(--font-weight-action);
+  line-height: var(--font-leading-action);
+  letter-spacing: var(--font-tracking-action);
+  text-transform: uppercase;
+}
+
+.type-ui-label {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-label);
+  line-height: var(--font-leading-label);
+}
+
+.type-ui-category {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-category);
+  font-weight: var(--font-weight-category);
+  line-height: var(--font-leading-category);
+  letter-spacing: var(--font-tracking-category);
+  text-transform: uppercase;
+}
+
+.type-ui-caption {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-caption);
+  line-height: var(--font-leading-caption);
+}
+
+.type-ui-credit {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-credit);
+  font-weight: var(--font-weight-credit);
+  line-height: var(--font-leading-credit);
+}
+
+.type-ui-lang-active {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-lang);
+  font-weight: var(--font-weight-lang-active);
+  line-height: var(--font-leading-lang);
+}
+
+.type-ui-lang-inactive {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-lang);
+  font-weight: var(--font-weight-lang-inactive);
+  line-height: var(--font-leading-lang);
+}
+
+.type-ui-action-secondary {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-action-secondary);
+  font-weight: var(--font-weight-action-secondary);
+  line-height: var(--font-leading-action-secondary);
+}
+
+.type-footer-kicker {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-footer-kicker);
+  font-weight: var(--font-weight-footer-kicker);
+  line-height: var(--font-leading-footer-kicker);
+  letter-spacing: var(--font-tracking-footer-kicker);
+  text-transform: uppercase;
+}
+
+.type-footer-title {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-footer-title);
+  font-weight: var(--font-weight-footer-title);
+  line-height: var(--font-leading-footer-title);
+}
+
+.type-footer-link {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-footer-link);
+  font-weight: var(--font-weight-footer-link);
+  line-height: var(--font-leading-footer-link);
+}
+
+.type-footer-link-quiet {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-footer-quiet);
+  font-weight: var(--font-weight-footer-quiet);
+  line-height: var(--font-leading-footer-quiet);
+  text-decoration-line: underline;
+}
+
+.type-footer-credit {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-footer-quiet);
+  font-weight: var(--font-weight-footer-quiet);
+  line-height: var(--font-leading-footer-quiet);
+}
+
+.type-field {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-field);
+  font-weight: var(--font-weight-field);
+  line-height: var(--font-leading-field);
+}
+
+.link-inline {
+  text-decoration-thickness: var(--underline-inline);
+  text-underline-offset: var(--underline-offset);
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid rgb(var(--color-focus));
+  outline-offset: 2px;
+}
+
+.focus-ring-inset:focus-visible {
+  outline: 2px solid rgb(var(--color-focus));
+  outline-offset: -2px;
+}
+
+.focus-ring-sand:focus-visible {
+  outline: 2px solid rgb(var(--color-accent-sand));
+  outline-offset: 2px;
+}
+
+.focus-ring-warm:focus-visible {
+  outline: 2px solid rgb(var(--color-background-warm));
+  outline-offset: 2px;
 }
 
 /* Tout ce qui se clique prend la main. */
@@ -100,15 +540,15 @@ summary,
 /* Le trait est déjà là, invisible. Au survol il prend la couleur du titre, en fondu. */
 .hit-title {
   text-decoration-line: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  text-decoration-thickness: var(--underline-thickness);
+  text-underline-offset: var(--underline-offset);
   text-decoration-color: transparent;
 }
 
 .hit-action,
 .chip,
 .chip-icon {
-  transition: background-color 200ms ease;
+  transition: background-color var(--motion-hover) ease;
 }
 
 .chip {
@@ -119,13 +559,18 @@ summary,
   --chip-rest: rgb(var(--color-surface-emphasis));
 }
 
+.space-mark-hover {
+  opacity: 0;
+  transition: opacity 400ms ease-in-out;
+}
+
 .chip-warm {
   --chip-rest: rgb(var(--color-background-warm));
 }
 
 @media (hover: hover) {
   .hit .hit-title {
-    transition: text-decoration-color 200ms ease;
+    transition: text-decoration-color var(--motion-hover) ease;
   }
 
   .hit:hover .hit-title {
@@ -137,9 +582,14 @@ summary,
     background-color: rgb(var(--color-action-hover));
   }
 
-  /* Le fond s'approfondit d'un cran. La pastille terracotta active aussi. */
-  .chip:hover {
+  /* Le fond s'approfondit d'un cran. La tuile espace n'en fait pas partie : seul son visuel change. */
+  .chip:hover:not(.chip-card) {
     background-color: color-mix(in srgb, rgb(var(--color-text)) 14%, var(--chip-rest));
+  }
+
+  .chip-card:hover .space-mark-hover,
+  .chip-card:focus-visible .space-mark-hover {
+    opacity: 1;
   }
 
   .chip-line:hover {

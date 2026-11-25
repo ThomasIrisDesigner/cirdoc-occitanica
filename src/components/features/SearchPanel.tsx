@@ -57,10 +57,10 @@ export function SearchField({
         value={value}
         aria-labelledby={labelledBy}
         onChange={(event) => onChange(event.target.value)}
-        className="min-w-0 flex-1 bg-transparent pl-4 font-ui text-base font-normal leading-6 text-text outline-none placeholder:text-[rgb(var(--color-text-secondary))]"
+        className="min-w-0 flex-1 bg-transparent pl-4 type-field text-text outline-none placeholder:text-[rgb(var(--color-text-secondary))]"
       />
       <button type="submit" aria-label={submitLabel} className="grid h-full w-12 shrink-0 place-items-center">
-        <IconSearch className="size-[26px]" />
+        <IconSearch className="size-[var(--size-icon-search)]" />
       </button>
     </div>
   )
@@ -123,7 +123,7 @@ export function SearchPanel({
             aria-label="Fermer la recherche"
             className="chip-icon grid size-12 place-items-center rounded-pill border border-[rgb(var(--color-action))]"
           >
-            <svg viewBox="0 0 16 16" className="size-[22px]" fill="none" aria-hidden>
+            <svg viewBox="0 0 16 16" className="size-[var(--size-icon-22)]" fill="none" aria-hidden>
               <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />
             </svg>
           </button>
@@ -134,7 +134,7 @@ export function SearchPanel({
             onClick={onMenu}
             className="chip-icon grid size-12 place-items-center rounded-pill border border-border"
           >
-            <IconMenu className="h-[18px] w-auto" />
+            <IconMenu className="h-[var(--size-icon-18)] w-auto" />
           </button>
           <LanguagePair />
         </div>
@@ -197,7 +197,7 @@ export function SearchPanel({
             href={GALLICA_ADVANCED}
             target="_blank"
             rel="noopener noreferrer"
-            className="hit mt-2 inline-flex min-h-11 items-center gap-2 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
+            className="hit mt-2 inline-flex min-h-11 items-center gap-2 self-start focus-ring"
           >
             <span className={`${typography.footerTitle} hit-title`}>Recherche avancée</span>
             <ExternalMark />
@@ -216,7 +216,7 @@ export function SearchPanel({
                   href={resource.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hit flex min-h-11 flex-col justify-center gap-1 py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
+                  className="hit flex min-h-11 flex-col justify-center gap-1 py-3 focus-ring"
                 >
                   <span className="flex items-center gap-2">
                     <span className={`${typography.footerTitle} hit-title`}>{resource.name}</span>

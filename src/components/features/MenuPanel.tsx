@@ -30,7 +30,7 @@ const TERRITOIRES: Array<{ label: string; key: TerritoireKey | null }> = [
 ]
 
 const rowFocus =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[rgb(var(--color-focus))]'
+  'focus-ring-inset'
 const currentItem = 'text-[rgb(var(--color-action))]'
 
 function GroupRule() {
@@ -82,7 +82,7 @@ export function MenuPanel({
             onClick={onSearch}
             className="chip-icon grid size-12 place-items-center rounded-pill border border-border"
           >
-            <IconSearch className="size-[26px]" />
+            <IconSearch className="size-[var(--size-icon-search)]" />
           </button>
           <button
             type="button"
@@ -90,7 +90,7 @@ export function MenuPanel({
             aria-label="Fermer le menu"
             className="chip-icon grid size-12 place-items-center rounded-pill border border-[rgb(var(--color-action))]"
           >
-            <svg viewBox="0 0 16 16" className="size-[22px]" fill="none" aria-hidden>
+            <svg viewBox="0 0 16 16" className="size-[var(--size-icon-22)]" fill="none" aria-hidden>
               <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />
             </svg>
           </button>
@@ -129,9 +129,9 @@ export function MenuPanel({
         >
           <span
             aria-hidden
-            className={`grid size-[28px] shrink-0 place-items-center ${collectionsCurrent ? 'bg-action' : 'bg-collections'}`}
+            className={`grid size-[var(--size-collections-mark)] shrink-0 place-items-center ${collectionsCurrent ? 'bg-action' : 'bg-collections'}`}
           >
-            <IconCollections className="h-[14px] w-auto text-[rgb(var(--color-background-warm))]" />
+            <IconCollections className="h-[var(--size-icon-collections)] w-auto text-[rgb(var(--color-background-warm))]" />
           </span>
           Collections
         </button>

@@ -38,7 +38,7 @@ function ExternalMark() {
 }
 
 const focusRing =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-accent-sand))]'
+  'focus-ring-sand'
 
 function holdPlaceholder(event: MouseEvent<HTMLAnchorElement>) {
   if (event.currentTarget.getAttribute('href') === '#') event.preventDefault()
@@ -155,7 +155,7 @@ function YoutubeBand() {
               aria-pressed={paused}
               aria-label={paused ? 'Relancer le défilement des vidéos' : 'Mettre en pause le défilement des vidéos'}
               onClick={() => setPaused((current) => !current)}
-              className="absolute bottom-2 right-2 grid size-11 place-items-center bg-[rgb(var(--color-text)/0.8)] text-[rgb(var(--color-background-warm))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-accent-sand))]"
+              className="absolute bottom-2 right-2 grid size-11 place-items-center bg-[rgb(var(--color-text)/0.8)] text-[rgb(var(--color-background-warm))] focus-ring-sand"
             >
               <span aria-hidden className="text-xs font-bold">
                 {paused ? '▶' : '❚❚'}
@@ -198,7 +198,7 @@ export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
       <div className="flex flex-col gap-10 px-4 pb-10 pt-8">
       <section>
         <h1 className={`${typography.title} flex items-end gap-3`}>
-          <IconCollections className="mb-[11px] h-7 w-auto shrink-0 text-[rgb(var(--color-background-warm))]" />
+          <IconCollections className="mb-[var(--offset-collections-mark)] h-7 w-auto shrink-0 text-[rgb(var(--color-background-warm))]" />
           Collections
         </h1>
         <form
@@ -231,7 +231,7 @@ export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
               className="min-w-0 flex-1 bg-transparent pl-4 font-ui text-base font-normal leading-6 text-text outline-none placeholder:text-[rgb(var(--color-text-secondary))]"
             />
             <button type="submit" aria-label="Rechercher dans Gallica" className="grid h-full w-12 shrink-0 place-items-center">
-              <IconSearch className="size-[26px]" />
+              <IconSearch className="size-[var(--size-icon-search)]" />
             </button>
           </div>
         </form>
@@ -239,7 +239,7 @@ export function CollectionsPageView({ go }: { go: (screen: Screen) => void }) {
           href={GALLICA_ADVANCED}
           target="_blank"
           rel="noopener noreferrer"
-            className="hit mt-2 inline-flex min-h-11 items-center gap-2 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
+            className="hit mt-2 inline-flex min-h-11 items-center gap-2 self-start focus-ring"
           >
             <span className={`${typography.footerTitle} hit-title`}>Recherche avancée</span>
           <span aria-hidden>↗</span>
@@ -363,7 +363,7 @@ export function CollectionEditorialView({
             href={gallicaResultsUrl(item.query)}
             target="_blank"
             rel="noopener noreferrer"
-            className="hit inline-flex min-h-11 items-center gap-2 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
+            className="hit inline-flex min-h-11 items-center gap-2 self-start focus-ring"
           >
             <span className={`${typography.footerTitle} hit-title`}>Voir les documents</span>
             <ExternalMark />

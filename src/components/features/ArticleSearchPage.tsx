@@ -8,9 +8,9 @@ import type { Screen } from '@/lib/prototypeRoutes'
 import { typography } from '@/styles/typography'
 
 const focusRing =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]'
+  'focus-ring'
 
-const resultTitle = 'font-ui text-2xl font-bold leading-[1.2]'
+const resultTitle = typography.resultTitle
 
 export function ArticleSearchPage({
   query,

@@ -53,6 +53,7 @@ export function PrototypeLayout({
 
   const sitemapActive = pathname === '/sitemap'
   const designSystemActive = pathname === '/design-system'
+  const integrationActive = pathname === '/integration'
   const phoneActive = pathname === '/telephone'
   const onPrototype = !sitemapActive && !designSystemActive && !phoneActive
   const mobileActive = onPrototype && effectiveMode === 'mobile'
@@ -113,6 +114,15 @@ export function PrototypeLayout({
           <div className="flex items-center gap-2">
             {isDesktop && (
               <div className="flex items-center gap-2">
+                <Link
+                  to="/integration"
+                  className={cn(
+                    'text-xs text-surface/80 hover:text-surface',
+                    integrationActive && 'text-surface'
+                  )}
+                >
+                  Intégration
+                </Link>
                 <Link
                   to="/design-system"
                   aria-label="Design system"

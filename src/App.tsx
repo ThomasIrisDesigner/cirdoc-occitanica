@@ -1,7 +1,9 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 
 import { PrototypeLayout } from '@/components/features/PrototypeLayout'
+import { INSTITUTION_SLUGS } from '@/lib/prototypeRoutes'
 import { DesignSystem } from '@/pages/DesignSystem'
+import { Integration } from '@/pages/Integration'
 import { PhonePreview } from '@/pages/PhonePreview'
 import { Prototype } from '@/pages/Prototype'
 import OccitanicaSitemap from '@/wireframes/Occitanica_Sitemap_V3'
@@ -22,6 +24,15 @@ export function App() {
         element={
           <PrototypeLayout alwaysDesktop>
             <DesignSystem />
+          </PrototypeLayout>
+        }
+      />
+
+      <Route
+        path="/integration"
+        element={
+          <PrototypeLayout alwaysDesktop>
+            <Integration />
           </PrototypeLayout>
         }
       />
@@ -51,7 +62,9 @@ export function App() {
         <Route path="/collections/:slug" element={<Prototype />} />
         <Route path="/articles/presentation-des-collections" element={<Prototype />} />
         <Route path="/recherche" element={<Prototype />} />
-        <Route path="/partenaires" element={<Prototype />} />
+        {INSTITUTION_SLUGS.map((slug) => (
+          <Route key={slug} path={`/${slug}`} element={<Prototype />} />
+        ))}
         <Route path="/article" element={<Navigate to="/espaces/musique/boha" replace />} />
         <Route path="/espaces/:espace" element={<Prototype />} />
         <Route path="/espaces/:espace/:slug" element={<Prototype />} />

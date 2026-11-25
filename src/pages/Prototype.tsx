@@ -8,7 +8,6 @@ import { EditorialArticle } from '@/components/features/EditorialArticle'
 import { EspacePageView, isDressedEspace } from '@/components/features/EspacePageView'
 import { SearchPanel } from '@/components/features/SearchPanel'
 import { HomeView } from '@/components/features/HomeView'
-import { PartenairesView } from '@/components/features/PartenairesView'
 import { TerritoirePageView } from '@/components/features/TerritoirePageView'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,9 +15,11 @@ import { Card } from '@/components/ui/card'
 import { getCollection, LARZAC_COLLECTION_PATH } from '@/data/collections'
 import { TERRITOIRES_CONFIG } from '@/data/territoires'
 import { getEditorialArticle, articlePath, filtrePath, gabaritPath, EDITORIAL_SPECIMEN, PRESENTATION_ARTICLE, PRESENTATION_ARTICLE_PATH, LARZAC_ARTICLE, type EditorialArticleContent } from '@/data/editorialArticle'
+import { getInstitutionPage } from '@/data/institutionPages'
 import {
   articleFromPath,
   collectionFromPath,
+  isInstitutionSlug,
   pathForScreen,
   screenFromPath,
   type EspaceKey,
@@ -1269,8 +1270,17 @@ export function Prototype() {
     content = <CollectionEditorialView key={pathname} item={collection} go={go} />
   } else if (screen === 'collections') {
     content = <CollectionsPageView go={go} />
-  } else if (screen === 'partenaires') {
-    content = <PartenairesView go={go} />
+  } else if (screen && isInstitutionSlug(screen)) {
+    const page = getInstitutionPage(screen)
+    content = page ? (
+      <EditorialArticle
+        key={pathname}
+        article={page}
+        crumbs={[{ label: 'Accueil', to: '/' }]}
+        onNavigate={go}
+        onPath={(path) => navigate(path)}
+      />
+    ) : null
   } else if (screen && screen.startsWith('espace-')) {
     const espaceKey = screen.slice('espace-'.length) as EspaceKey
     content = (

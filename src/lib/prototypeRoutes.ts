@@ -4,14 +4,29 @@ export type EspaceKey = (typeof ESPACE_KEYS)[number]
 export const TERRITOIRE_KEYS = ['gascogne', 'languedoc', 'pyrenees', 'provence'] as const
 export type TerritoireKey = (typeof TERRITOIRE_KEYS)[number]
 
+/** Pages de texte du pied de page. L’adresse est /:slug, hors du corpus. */
+export const INSTITUTION_SLUGS = [
+  'partenaires',
+  'mentions-legales',
+  'entrepot-oai-pmh',
+  'cookies',
+  'conditions-d-utilisation',
+  'donnees-personnelles',
+] as const
+export type InstitutionSlug = (typeof INSTITUTION_SLUGS)[number]
+
 export type Screen =
   | 'home'
   | 'menu'
   | 'collections'
-  | 'partenaires'
   | 'article'
+  | InstitutionSlug
   | `espace-${EspaceKey}`
   | `territoire-${TerritoireKey}`
+
+export function isInstitutionSlug(value: string): value is InstitutionSlug {
+  return (INSTITUTION_SLUGS as readonly string[]).includes(value)
+}
 
 function isEspaceKey(value: string): value is EspaceKey {
   return (ESPACE_KEYS as readonly string[]).includes(value)
@@ -25,8 +40,8 @@ export function pathForScreen(screen: Screen): string {
   if (screen === 'home') return '/'
   if (screen === 'menu') return '/menu'
   if (screen === 'collections') return '/collections'
-  if (screen === 'partenaires') return '/partenaires'
   if (screen === 'article') return '/espaces/musique/boha'
+  if (isInstitutionSlug(screen)) return `/${screen}`
   if (screen.startsWith('espace-')) return `/espaces/${screen.slice('espace-'.length)}`
   return `/territoires/${screen.slice('territoire-'.length)}`
 }
@@ -35,8 +50,10 @@ export function screenFromPath(pathname: string): Screen | null {
   if (pathname === '/') return 'home'
   if (pathname === '/menu') return 'menu'
   if (pathname === '/collections') return 'collections'
-  if (pathname === '/partenaires') return 'partenaires'
   if (pathname === '/article') return 'article'
+
+  const institution = pathname.match(/^\/([^/]+)$/)
+  if (institution && isInstitutionSlug(institution[1])) return institution[1]
 
   const espace = pathname.match(/^\/espaces\/([^/]+)$/)
   if (espace && isEspaceKey(espace[1])) return `espace-${espace[1]}`

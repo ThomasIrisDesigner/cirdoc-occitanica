@@ -16,7 +16,7 @@ export function IconCollections({ className = 'h-6 w-auto' }: IconProps) {
   )
 }
 
-export function IconContact({ className = 'h-[21px] w-auto' }: IconProps) {
+export function IconContact({ className = 'h-[var(--size-icon-contact)] w-auto' }: IconProps) {
   return (
     <svg viewBox="-1 -1 20.31 23.6" className={className} fill="none" aria-hidden>
       <path
@@ -45,7 +45,7 @@ export function IconFacebook({ className = 'h-5 w-auto' }: IconProps) {
   )
 }
 
-export function IconLinkedin({ className = 'h-[18px] w-auto' }: IconProps) {
+export function IconLinkedin({ className = 'h-[var(--size-icon-18)] w-auto' }: IconProps) {
   return (
     <svg viewBox="3.2 3.2 17.6 17.4" className={className} aria-hidden>
       <path
@@ -56,7 +56,7 @@ export function IconLinkedin({ className = 'h-[18px] w-auto' }: IconProps) {
   )
 }
 
-export function IconInstagram({ className = 'size-[18px]' }: IconProps) {
+export function IconInstagram({ className = 'size-[var(--size-icon-18)]' }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden>
       <path
@@ -86,7 +86,7 @@ export function IconYoutube({ className = 'h-auto w-5' }: IconProps) {
   )
 }
 
-export function IconMail({ className = 'h-auto w-[18px]' }: IconProps) {
+export function IconMail({ className = 'h-auto w-[var(--size-icon-18)]' }: IconProps) {
   return (
     <svg viewBox="0 0 18 13.5056" className={className} aria-hidden>
       <path
@@ -99,7 +99,7 @@ export function IconMail({ className = 'h-auto w-[18px]' }: IconProps) {
   )
 }
 
-export function IconSearch({ className = 'size-[22px]' }: IconProps) {
+export function IconSearch({ className = 'size-[var(--size-icon-22)]' }: IconProps) {
   return (
     <svg viewBox="0 0 22 22" className={className} fill="none" aria-hidden>
       <mask id="home-search-stroke" fill="white">
@@ -116,7 +116,7 @@ export function IconSearch({ className = 'size-[22px]' }: IconProps) {
   )
 }
 
-export function IconMenu({ className = 'h-[13px] w-auto' }: IconProps) {
+export function IconMenu({ className = 'h-[var(--size-icon-18)] w-auto' }: IconProps) {
   return (
     <svg viewBox="0 0 17.5613 12.7838" className={className} aria-hidden>
       <g fill="currentColor">

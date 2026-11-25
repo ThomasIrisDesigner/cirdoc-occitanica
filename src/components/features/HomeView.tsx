@@ -10,11 +10,17 @@ import col7 from '@/assets/home/col-7.png'
 import col8 from '@/assets/home/col-8.png'
 import col9 from '@/assets/home/col-9.png'
 import markCulture from '@/assets/home/mark-culture.png'
+import markCultureHover from '@/assets/home/mark-culture-hover.png'
 import markHistoires from '@/assets/home/mark-histoires.png'
+import markHistoiresHover from '@/assets/home/mark-histoires-hover.png'
 import markImages from '@/assets/home/mark-images.png'
+import markImagesHover from '@/assets/home/mark-images-hover.png'
 import markLitterature from '@/assets/home/mark-litterature-lecteur.png'
+import markLitteratureHover from '@/assets/home/mark-litterature-lecteur-hover.png'
 import markMusiques from '@/assets/home/mark-musiques.png'
+import markMusiquesHover from '@/assets/home/mark-musiques-hover.png'
 import markPartage from '@/assets/home/mark-litterature.png'
+import markPartageHover from '@/assets/home/mark-litterature-hover.png'
 import uneActive from '@/assets/home/une-c.png'
 import uneNext from '@/assets/home/une-d.png'
 import unePrev from '@/assets/home/une-b.png'
@@ -25,6 +31,7 @@ import { LanguagePair } from '@/components/features/LanguagePair'
 import { Logo } from '@/components/features/Logo'
 import { MenuPanel } from '@/components/features/MenuPanel'
 import { SearchPanel } from '@/components/features/SearchPanel'
+import { INSTITUTION_PAGES } from '@/data/institutionPages'
 import type { EspaceKey, Screen, TerritoireKey } from '@/lib/prototypeRoutes'
 import { typography } from '@/styles/typography'
 
@@ -40,14 +47,15 @@ const ESPACES: Array<{
   label: string
   line: string
   image: string
+  hover: string
   espace?: EspaceKey
 }> = [
-  { label: 'Culture vivante', line: 'Des pratiques qui rassemblent', image: markCulture, espace: 'fetes' },
-  { label: 'Littérature', line: 'Textes et regards critiques', image: markLitterature, espace: 'langue' },
-  { label: "Figures d'oc", line: 'Parcours, portraits, engagements', image: markPartage, espace: 'portraits' },
-  { label: 'Musiques', line: 'Du son sous toutes ses formes', image: markMusiques, espace: 'musique' },
-  { label: 'Histoires de…', line: 'Événements, luttes, idées', image: markHistoires, espace: 'histoires' },
-  { label: 'Plein cadre', line: 'Des images en perspective', image: markImages, espace: 'cadre' },
+  { label: 'Culture vivante', line: 'Des pratiques qui rassemblent', image: markCulture, hover: markCultureHover, espace: 'fetes' },
+  { label: 'Littérature', line: 'Textes et regards critiques', image: markLitterature, hover: markLitteratureHover, espace: 'langue' },
+  { label: "Figures d'oc", line: 'Parcours, portraits, engagements', image: markPartage, hover: markPartageHover, espace: 'portraits' },
+  { label: 'Musiques', line: 'Du son sous toutes ses formes', image: markMusiques, hover: markMusiquesHover, espace: 'musique' },
+  { label: 'Histoires de…', line: 'Événements, luttes, idées', image: markHistoires, hover: markHistoiresHover, espace: 'histoires' },
+  { label: 'Plein cadre', line: 'Des images en perspective', image: markImages, hover: markImagesHover, espace: 'cadre' },
 ]
 
 const TERRITOIRES: Array<{ label: string; key: TerritoireKey | null }> = [
@@ -260,7 +268,7 @@ function UneCarousel({ onDiscover }: { onDiscover: () => void }) {
                   if (swiped.current) return
                   onDiscover()
                 }}
-                className="hit relative shrink-0 overflow-hidden text-left focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[rgb(var(--color-focus))]"
+                className="hit relative shrink-0 overflow-hidden text-left focus-ring-inset"
                 style={{
                   width: isActive ? UNE_ACTIVE_W : UNE_SIDE_W,
                   height: isActive ? UNE_ACTIVE_H : UNE_SIDE_H,
@@ -371,7 +379,7 @@ export function SiteHeader({
     dark
       ? 'bg-collections text-[rgb(var(--color-accent-sand))]'
       : 'bg-[rgb(var(--color-background-warm))] text-text',
-    compact ? 'h-16 border-b py-2' : 'h-[88px] py-3',
+    compact ? 'h-16 border-b py-2' : 'h-[var(--size-header)] py-3',
     compact
       ? dark
         ? 'border-[rgb(var(--color-border-on-dark))]'
@@ -382,8 +390,8 @@ export function SiteHeader({
   const logo = <Logo light={dark} compact={compact} />
   return (
     <>
-    <div aria-hidden className="h-[88px]" />
-    <header ref={headerRef} className="pointer-events-none sticky top-0 z-30 -mt-[88px] h-[88px]">
+    <div aria-hidden className="h-[var(--size-header)]" />
+    <header ref={headerRef} className="pointer-events-none sticky top-0 z-30 -mt-[var(--size-header)] h-[var(--size-header)]">
       <div className={bar} {...(chrome === 'hidden' ? { inert: true } : {})}>
       {onLogo ? (
         <button type="button" onClick={onLogo} aria-label="Accueil" className="text-left">{logo}</button>
@@ -397,7 +405,7 @@ export function SiteHeader({
           onClick={openSearch}
           className={`chip-icon grid size-12 place-items-center rounded-pill border ${control}`}
         >
-          <IconSearch className="size-[26px]" />
+          <IconSearch className="size-[var(--size-icon-search)]" />
         </button>
         <button
           type="button"
@@ -407,7 +415,7 @@ export function SiteHeader({
           onClick={openMenu}
           className={`chip-icon grid size-12 place-items-center rounded-pill border ${control}`}
         >
-          <IconMenu className="h-[18px] w-auto" />
+          <IconMenu className="h-[var(--size-icon-18)] w-auto" />
         </button>
         <LanguagePair tone={tone} />
       </div>
@@ -435,6 +443,26 @@ export function SiteHeader({
   )
 }
 
+function FooterPageLink({
+  label,
+  screen,
+  go,
+}: {
+  label: string
+  screen: Screen
+  go: (screen: Screen) => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => go(screen)}
+      className="hit flex min-h-9 w-full items-center text-left"
+    >
+      <span className="hit-title">{label}</span>
+    </button>
+  )
+}
+
 export function SiteFooter({ go }: { go: (screen: Screen) => void }) {
   return (
     <footer className="bg-footer px-4 pt-6 text-[rgb(var(--color-background-warm))]">
@@ -444,8 +472,8 @@ export function SiteFooter({ go }: { go: (screen: Screen) => void }) {
       <div className="flex flex-col gap-3 py-4">
         <p className={`${typography.footerKicker} text-[rgb(var(--color-accent-sand))]`}>Nous contacter</p>
         <div className="flex items-center gap-3">
-          <span className="grid size-9 place-items-center rounded-[18px] bg-text">
-            <IconContact className="h-[21px] w-auto text-[rgb(var(--color-action-hover))]" />
+          <span className="grid size-9 place-items-center rounded-pill bg-text">
+            <IconContact className="h-[var(--size-icon-contact)] w-auto text-[rgb(var(--color-action-hover))]" />
           </span>
           <span>
             <span className={`${typography.footerTitle} block`}>L'équipe</span>
@@ -461,19 +489,19 @@ export function SiteFooter({ go }: { go: (screen: Screen) => void }) {
       <div className="flex flex-col gap-3 py-4">
         <p className={`${typography.footerKicker} text-[rgb(var(--color-accent-sand))]`}>Suivez-nous</p>
         <div className="flex gap-4">
-          <span aria-label="Facebook" className="grid size-9 place-items-center rounded-[18px] bg-text">
+          <span aria-label="Facebook" className="grid size-9 place-items-center rounded-pill bg-text">
             <IconFacebook className="h-5 w-auto text-[rgb(var(--color-action-hover))]" />
           </span>
-          <span aria-label="Courriel" className="grid size-9 place-items-center rounded-[18px] bg-text">
-            <IconMail className="h-auto w-[18px] text-[rgb(var(--color-action-hover))]" />
+          <span aria-label="Courriel" className="grid size-9 place-items-center rounded-pill bg-text">
+            <IconMail className="h-auto w-[var(--size-icon-18)] text-[rgb(var(--color-action-hover))]" />
           </span>
-          <span aria-label="LinkedIn" className="grid size-9 place-items-center rounded-[18px] bg-text">
-            <IconLinkedin className="h-[18px] w-auto text-[rgb(var(--color-action-hover))]" />
+          <span aria-label="LinkedIn" className="grid size-9 place-items-center rounded-pill bg-text">
+            <IconLinkedin className="h-[var(--size-icon-18)] w-auto text-[rgb(var(--color-action-hover))]" />
           </span>
-          <span aria-label="Instagram" className="grid size-9 place-items-center rounded-[18px] bg-text">
-            <IconInstagram className="size-[18px] text-[rgb(var(--color-action-hover))]" />
+          <span aria-label="Instagram" className="grid size-9 place-items-center rounded-pill bg-text">
+            <IconInstagram className="size-[var(--size-icon-18)] text-[rgb(var(--color-action-hover))]" />
           </span>
-          <span aria-label="YouTube" className="grid size-9 place-items-center rounded-[18px] bg-text">
+          <span aria-label="YouTube" className="grid size-9 place-items-center rounded-pill bg-text">
             <IconYoutube className="h-auto w-5 text-[rgb(var(--color-action-hover))]" />
           </span>
         </div>
@@ -497,19 +525,12 @@ export function SiteFooter({ go }: { go: (screen: Screen) => void }) {
         <div className="h-px w-full bg-[rgb(var(--color-action-hover))]" />
       </div>
       <div className={`${typography.footerLink} pb-6 pt-4`}>
-        <button
-          type="button"
-          onClick={() => go('partenaires')}
-          className="hit flex min-h-9 w-full items-center text-left"
-        >
-          <span className="hit-title">Partenaires</span>
-        </button>
-        {['Mentions légales et crédits', 'Entrepôt OAI-PMH', 'Informations sur les cookies'].map((label) => (
-          <p key={label} className="flex min-h-9 items-center">{label}</p>
+        {INSTITUTION_PAGES.slice(0, 4).map((page) => (
+          <FooterPageLink key={page.slug} label={page.title} screen={page.slug} go={go} />
         ))}
         <div className="mt-2">
-          {['Conditions d’utilisation', 'Données personnelles'].map((label) => (
-            <p key={label} className="flex min-h-9 items-center">{label}</p>
+          {INSTITUTION_PAGES.slice(4).map((page) => (
+            <FooterPageLink key={page.slug} label={page.title} screen={page.slug} go={go} />
           ))}
         </div>
         <div className="mt-2 flex h-8 items-center px-4" aria-hidden>
@@ -563,7 +584,10 @@ export function HomeView({
               }
               className="chip chip-card flex h-28 w-72 shrink-0 items-center gap-4 bg-[rgb(var(--color-surface-emphasis))] px-3 py-4 text-left"
             >
-              <img src={item.image} alt="" className="h-[62.72px] w-[50.58px] shrink-0" />
+              <span className="relative block h-[var(--size-mark-h)] w-[var(--size-mark-w)] shrink-0">
+                <img src={item.image} alt="" className="absolute inset-0 h-full w-full" />
+                <img src={item.hover} alt="" className="space-mark-hover absolute inset-0 h-full w-full" />
+              </span>
               <span className="min-w-0">
                 <span className={`${typography.tileTitle} block text-[rgb(var(--color-text-brand))]`}>{item.label}</span>
                 <span className={`${typography.uiCaption} mt-1 block text-[rgb(var(--color-text-secondary))]`}>{item.line}</span>
